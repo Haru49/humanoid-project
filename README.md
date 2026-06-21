@@ -5,6 +5,67 @@ ESP32-based humanoid and legged robot learning project.
 This repository is for building a humanoid or legged robot step by step with
 XIAO ESP32S3 Sense, servo motors, Fusion design, and real hardware tests.
 
+## Current Hardware
+
+- Seeed Studio XIAO ESP32-S3 Sense
+- OV3660 camera module
+- Servo Driver Board for XIAO V1.0
+
+## Official References
+
+- [Getting Started with Seeed Studio XIAO ESP32-S3 Series](https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/)
+
+For this project, use the **XIAO ESP32-S3 Sense** information on that page.
+
+## Development Plan
+
+See [ROADMAP.md](ROADMAP.md) for the staged path from board experiments to a
+walking biped.
+
+## Firmware Commands
+
+The repository root is one PlatformIO project. Its `platformio.ini` contains a
+separate environment for each firmware experiment.
+
+```txt
+humanoid-project/
+├── platformio.ini
+└── firmware/
+    ├── xiao-esp32s3-camera-test/
+    ├── xiao-esp32s3-camera-stream/
+    ├── servo-driver-test/
+    └── humanoid-controller/
+```
+
+Open only the `humanoid-project` folder in VS Code. PlatformIO finds the root
+`platformio.ini`, so there is no need to reopen each experiment folder.
+
+Each environment uses `build_src_filter` to select only its own source files.
+For example, the `camera` environment builds the camera test and does not build
+future servo test source files.
+
+Run named commands from the repository root so the build target is explicit:
+
+```bash
+make camera-build
+make camera-upload
+make camera-monitor
+```
+
+The shorter `make build`, `make upload`, and `make monitor` commands currently
+remain aliases for the camera experiment.
+
+- `build` compiles firmware without requiring the XIAO to be connected.
+- `upload` compiles and writes firmware to the connected XIAO.
+- `monitor` displays Serial output from the XIAO.
+
+When another experiment is created, it receives its own named commands, such
+as `make servo-build`. This prevents ambiguity about which firmware is being
+built.
+
+The current next experiment is Wi-Fi camera streaming. The existing camera
+capture test remains unchanged as a known-good baseline.
+
 ## Goal
 
 The goal is not only to build a robot, but to learn how to explain and control
