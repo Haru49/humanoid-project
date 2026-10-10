@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEXUS wireframe v7</title>
+<!--
+  Wireframe v7 (2026-10-10). v7: robot figure shows which way it faces (pelvis
+  top face, feet pointing at the viewer, FRONT plate). Wireframe v6: v6: type fixed to Archivo + IBM Plex Mono; finishing
+  details (grain, value-change flash, live pulse, selection draw-in, log arrival,
+  scrub IMU traces on hover). Wireframe v5: v5: selection/accent = mustard yellow, HOT/warn = orange.
+  Wireframe v4 notes: v4: robot | joints + IMU stacked; fluid sizing so
+  the columns fill the height without scrolling; faulty joints red on the figure.
+  (v3 notes follow.) Layout and behaviour only.
+  v3: IMU | robot | joints (per-leg grid). IMU no longer clipped.
+      Sans for words, mono only for numbers and logs.
+      Three type pairings switchable (bottom-right) for comparison.
+      Front/back view switch mirrors both the figure and the joint grid.
+  Colours: palette 04 "Cognac". Robot: 2D stand-in for the 3D view.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..600&family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&family=IBM+Plex+Sans+JP:wght@400;500&family=Instrument+Sans:wght@400;500;600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#141110; --surface:#1c1816; --sunken:#100e0d; --line:#2c2622; --line-strong:#40382f;
+    --t1:#ede6dc; --t2:#aba196; --t3:#6f665d;
+    --accent:#d2b064; --on-accent:#141110;
+    --warn:#e0843c; --fault:#cf4a3f; --off:#6f665d;
+    --panel-h: 150px;
+    --jp: "IBM Plex Sans JP", "Hiragino Sans", sans-serif;
+  }
+  /* Type pairings under comparison */
+  body.fA { --sans: "Archivo", var(--jp); --mono: "IBM Plex Mono", ui-monospace, monospace; --label-stretch: 112%; }
+  body.fB { --sans: "IBM Plex Sans", var(--jp); --mono: "IBM Plex Mono", ui-monospace, monospace; --label-stretch: 100%; }
+  body.fC { --sans: "Instrument Sans", var(--jp); --mono: "DM Mono", ui-monospace, monospace; --label-stretch: 100%; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body { background: var(--bg); color: var(--t1); font: 400 13px/1.5 var(--sans); -webkit-font-smoothing: antialiased; }
+  .num, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  /* Labels: small uppercase sans, wide tracking. Never mono. */
+  .label { font-family: var(--sans); font-stretch: var(--label-stretch); font-size: 10.5px; font-weight: 500; letter-spacing: .12em; color: var(--t3); text-transform: uppercase; }
+
+  .app { height: 100vh; display: grid; grid-template-rows: 48px 1fr auto; }
+  body.panel-closed { --panel-h: 0px; }
+
+  /* ---- header ---- */
+  .top { display: flex; align-items: center; gap: 28px; padding: 0 24px; border-bottom: 1px solid var(--line); }
+  .brand { font-stretch: var(--label-stretch); font-weight: 600; letter-spacing: .26em; font-size: 12px; }
+  .nav { display: flex; height: 100%; }
+  .nav button { padding: 0 14px; color: var(--t3); border-bottom: 1px solid transparent; font-size: 13px; }
+  .nav button:hover { color: var(--t2); }
+  .nav button.on { color: var(--t1); border-bottom-color: var(--accent); }
+  .sp { flex: 1; }
+  .hgroup { display: flex; align-items: center; gap: 14px; height: 100%; }
+  .hgroup + .hgroup { border-left: 1px solid var(--line); padding-left: 20px; }
+  .src { font-size: 11.5px; color: var(--t2); display: inline-flex; gap: 8px; align-items: center; }
+  .sys { font-size: 12px; font-weight: 500; letter-spacing: .12em; display: flex; gap: 8px; align-items: center; }
+  .sq { width: 7px; height: 7px; display: inline-block; flex: none; }
+  .ghost { font-size: 11.5px; color: var(--t2); border: 1px solid var(--line-strong); padding: 5px 12px; letter-spacing: .04em; }
+  .ghost:hover { color: var(--t1); border-color: var(--t3); }
+  .connect { font-size: 11.5px; padding: 6px 14px; background: var(--accent); color: var(--on-accent); font-weight: 500; letter-spacing: .04em; border: 1px solid var(--accent); }
+  .connect.on { background: none; border-color: var(--line-strong); color: var(--t2); font-weight: 400; }
+
+  /* ---- main: [motion] | imu | robot | joints ---- */
+  .main { display: grid; grid-template-columns: minmax(260px, 0.8fr) minmax(560px, 1.2fr); min-height: 0; }
+  body.motion .main { grid-template-columns: 220px minmax(200px, 0.8fr) minmax(540px, 1.2fr); }
+  /* Data column fills the height: joints take what they need, IMU takes the rest. */
+  .data { display: grid; grid-template-rows: auto 1fr; overflow: hidden; }
+  .imu { display: grid; grid-template-rows: auto 1fr; min-height: 0; }
+  .imu-body { display: grid; grid-template-columns: auto 1fr; gap: clamp(16px, 2.4vw, 36px); align-items: center; min-height: 0; }
+  .imu .gauge { width: clamp(88px, 15vh, 168px); height: auto; }
+  .axes { display: grid; grid-template-rows: repeat(3, minmax(30px, 1fr)); height: 100%; max-height: 220px; align-self: center; }
+  .axes .axis { height: auto; }
+  .col { min-height: 0; overflow: auto; }
+  .col + .col { border-left: 1px solid var(--line); }
+  .sec { padding: clamp(12px, 2vh, 22px) 24px; }
+  .sec + .sec { border-top: 1px solid var(--line); }
+  .sechead { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: clamp(8px, 1.4vh, 16px); gap: 12px; }
+  .meta { font-size: 11px; color: var(--t3); }
+
+  /* IMU */
+  .gauge { display: grid; place-items: center; margin: 4px 0 18px; }
+  .axis { display: grid; grid-template-columns: 48px 1fr 84px; gap: 12px; align-items: center; height: 46px; border-top: 1px solid var(--line); }
+  .axis .k { color: var(--t2); font-size: 12px; }
+  .axis .v { font-size: 19px; font-weight: 400; text-align: right; letter-spacing: -.01em; }
+  .axis svg { width: 100%; height: 24px; }
+  .imu-foot { display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--line); font-size: 11px; color: var(--t3); }
+
+  /* Robot */
+  .robot { position: relative; display: grid; place-items: center; }
+  .robot .tl { position: absolute; top: 20px; left: 24px; }
+  .seg { position: absolute; top: 15px; right: 20px; display: flex; border: 1px solid var(--line-strong); }
+  .seg button { font-size: 10.5px; letter-spacing: .1em; padding: 4px 10px; color: var(--t3); font-weight: 500; }
+  .seg button.on { background: var(--surface); color: var(--t1); }
+  .robot .hint { position: absolute; bottom: 18px; font-size: 11px; color: var(--t3); }
+  #robot { height: min(78%, 520px); width: auto; max-width: 86%; }
+
+  /* Joints: one column per leg */
+  .legs { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+  .leghead { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 8px; }
+  .colhead { display: grid; grid-template-columns: 1.2fr 1fr 1fr; padding: 0 0 6px 12px; }
+  .colhead span { font-size: 10px; letter-spacing: .1em; color: var(--t3); text-transform: uppercase; text-align: right; }
+  .colhead span:first-child { text-align: left; }
+  .jb { padding: clamp(7px, 1.3vh, 14px) 0 clamp(7px, 1.3vh, 14px) 12px; border-top: 1px solid var(--line); cursor: pointer; position: relative; }
+  .jb:hover { background: var(--surface); }
+  .jb.sel { background: var(--surface); }
+  .jb.sel::before { content: ""; position: absolute; left: 0; top: -1px; bottom: 0; width: 2px; background: var(--accent); }
+  .jb .row1 { display: flex; justify-content: space-between; align-items: baseline; padding-right: 10px; }
+  .jb .nm { font-size: 12.5px; color: var(--t2); }
+  .jb .nm .id { font-family: var(--mono); color: var(--t3); margin-right: 8px; font-size: 11.5px; }
+  .st { font-size: 10.5px; font-weight: 500; letter-spacing: .08em; display: inline-flex; gap: 6px; align-items: center; color: var(--t3); }
+  .st .sq { width: 6px; height: 6px; }
+  .vals { display: grid; grid-template-columns: 1.2fr 1fr 1fr; margin-top: 4px; padding-right: 10px; }
+  .vals span { font-size: 17px; text-align: right; }
+  .vals span:first-child { text-align: left; }
+  .vals small { font-size: 10.5px; color: var(--t3); margin-left: 3px; }
+  .vals .dim { color: var(--t3); }
+  .busrow { display: grid; grid-template-columns: auto auto 1fr; gap: 16px; align-items: center; margin-top: clamp(8px, 1.4vh, 14px); padding-top: clamp(8px, 1.4vh, 14px); border-top: 1px solid var(--line); }
+  .busrow .v { font-size: 15px; }
+  .busrow svg { width: 100%; height: 22px; }
+
+  /* Motion rail */
+  .rail { display: none; flex-direction: column; }
+  body.motion .rail { display: flex; }
+  .prog button { display: block; width: 100%; text-align: left; padding: 8px 10px; color: var(--t2); border-left: 2px solid transparent; font-size: 13px; }
+  .prog button.on { color: var(--t1); border-left-color: var(--accent); background: var(--surface); }
+  .mstate { font-size: 11.5px; color: var(--t2); }
+  .acts { display: flex; flex-direction: column; gap: 8px; }
+  .act { border: 1px solid var(--line-strong); padding: 13px 12px; text-align: left; display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13.5px; }
+  .act:hover:not(:disabled) { border-color: var(--accent); }
+  .act:disabled { color: var(--t3); cursor: not-allowed; }
+  .act .why { font-size: 10.5px; color: var(--t3); }
+  .act.running { border-color: var(--accent); color: var(--accent); }
+  .stop { margin: auto 16px 16px; padding: 16px; background: var(--fault); color: var(--bg); font-weight: 600; letter-spacing: .2em; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+  .stop kbd { font: 10.5px var(--mono); opacity: .7; letter-spacing: 0; }
+
+  /* Bottom panel */
+  .panel { height: calc(var(--panel-h) + 34px); border-top: 1px solid var(--line); background: var(--sunken); display: grid; grid-template-rows: 34px 1fr; position: relative; }
+  .grip { position: absolute; top: -3px; left: 0; right: 0; height: 6px; cursor: ns-resize; }
+  .ptabs { display: flex; align-items: stretch; padding: 0 16px 0 10px; border-bottom: 1px solid var(--line); }
+  .ptabs .tab { padding: 0 12px; border-bottom: 1px solid transparent; }
+  .ptabs .tab.on { color: var(--t1); border-bottom-color: var(--t2); }
+  .ptabs .tools { margin-left: auto; display: flex; align-items: center; gap: 16px; font-size: 11.5px; color: var(--t3); }
+  .ptabs .tools button:hover { color: var(--t1); }
+  .stream { overflow: auto; padding: 6px 24px 10px; font: 12px/1.7 var(--mono); }
+  body.panel-closed .stream { display: none; }
+  .ln { display: grid; grid-template-columns: 72px 56px 1fr; gap: 12px; white-space: nowrap; }
+  .ln .t, .ln .lv { color: var(--t3); }
+  .ln .m { color: var(--t2); overflow: hidden; text-overflow: ellipsis; }
+  .ln.raw .m { color: var(--t3); }
+
+  [data-copy] { cursor: copy; }
+  [data-copy]:hover { color: var(--accent) !important; }
+  .toast { position: fixed; top: 58px; left: 50%; transform: translateX(-50%); background: var(--t1); color: var(--bg); font: 11.5px var(--mono); padding: 5px 12px; opacity: 0; transition: opacity .15s; pointer-events: none; z-index: 9; }
+  .toast.show { opacity: 1; }
+
+
+  /* ---- v6 finishing: quiet, meaningful motion and texture ---- */
+  /* Film grain: a faint analog texture so the dark surface is not flat digital black. */
+  body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 20; opacity: .05; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+  /* A value that just changed lights up in the accent and settles back (F1 timing-screen style). */
+  @keyframes settle { from { color: var(--accent); } to { color: inherit; } }
+  .chg { animation: settle .9s ease-out; }
+  /* Live link: the port square breathes slowly. Still = not live. */
+  @keyframes breathe { 50% { opacity: .35; } }
+  .sq.live { animation: breathe 2.4s ease-in-out infinite; }
+  /* Selection bar draws in from the top. */
+  @keyframes drawbar { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  .jb.sel.enter::before { transform-origin: top; animation: drawbar .18s ease-out; }
+  .jb { transition: background-color .12s; }
+  /* New log lines slide up a few pixels. */
+  @keyframes arrive { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .ln.new { animation: arrive .22s ease-out; }
+  /* Trace scrubbing */
+  .axis { cursor: crosshair; }
+  .axis.scrub .v { color: var(--t2); }
+  .axis.scrub .k { color: var(--accent); }
+  @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
+  .fontpick { position: fixed; right: 12px; bottom: 10px; display: flex; gap: 2px; z-index: 5; background: var(--sunken); border: 1px solid var(--line-strong); }
+  .fontpick button { font: 10.5px var(--mono); color: var(--t3); padding: 4px 8px; }
+  .fontpick button.on { color: var(--t1); background: var(--surface); }
+</style>
+</head>
+<body class="fA">
+<div class="app">
+  <header class="top">
+    <span class="brand">NEXUS</span>
+    <nav class="nav">
+      <button class="on" data-page="monitor">Monitor</button>
+      <button data-page="motion">Motion</button>
+      <button>Logs</button>
+      <button>Tools</button>
+    </nav>
+    <span class="sp"></span>
+    <div class="hgroup">
+      <button class="ghost" id="copyall">Copy all</button>
+    </div>
+    <div class="hgroup">
+      <span class="src"><i class="sq" id="portdot" style="background:var(--off)"></i><span id="src" class="mono">MOCK</span></span>
+      <button class="connect" id="connect">Connect ESP32</button>
+    </div>
+    <div class="hgroup">
+      <span class="sys" id="sys" style="color:var(--fault)"><i class="sq" style="background:var(--fault)"></i>ERROR</span>
+    </div>
+  </header>
+
+  <main class="main">
+    <aside class="col rail">
+      <div class="sec">
+        <div class="label" style="margin-bottom:12px">Motion</div>
+        <div class="prog" id="prog">
+          <button class="on" data-p="squat">屈伸</button>
+          <button data-p="left">左脚 平面リンク</button>
+          <button data-p="right">右脚 平面リンク</button>
+        </div>
+      </div>
+      <div class="sec"><div class="mstate mono" id="mstate"></div></div>
+      <div class="sec"><div class="acts" id="acts"></div></div>
+      <button class="stop" id="stop">STOP <kbd>esc</kbd></button>
+    </aside>
+
+    <section class="col robot">
+      <span class="label tl">Robot</span>
+      <div class="seg" id="view"><button class="on" data-v="front">FRONT</button><button data-v="back">BACK</button></div>
+      <svg id="robot" viewBox="0 0 300 344"></svg>
+      <span class="hint">drag to orbit · 3D</span>
+    </section>
+
+    <section class="col data">
+      <div class="sec">
+        <div class="sechead"><span class="label">Joints</span><span class="meta mono">scan 2.0 s</span></div>
+        <div class="legs" id="legs"></div>
+        <div class="busrow">
+          <span class="label">Bus</span>
+          <span class="v num" data-copy="bus 7.38 V">7.38<small style="font-size:10.5px;color:var(--t3);margin-left:3px">V</small></span>
+          <svg viewBox="0 0 200 22" preserveAspectRatio="none"><polyline fill="none" stroke="var(--t3)" stroke-width="1" points="0,9 10,8 20,10 30,9 40,7 50,9 60,12 70,13 80,11 90,10 100,14 110,16 120,14 130,12 140,13 150,11 160,12 170,14 180,13 190,12 200,13"/></svg>
+        </div>
+      </div>
+      <div class="sec imu">
+        <div class="sechead"><span class="label">IMU</span><span class="meta mono">BNO085 · 50 Hz · accuracy HIGH</span></div>
+        <div class="imu-body">
+          <svg class="gauge" viewBox="0 0 148 148">
+            <circle cx="74" cy="74" r="72" fill="none" stroke="var(--line-strong)"/>
+            <circle cx="74" cy="74" r="48" fill="none" stroke="var(--line)"/>
+            <circle cx="74" cy="74" r="24" fill="none" stroke="var(--line)"/>
+            <line x1="2" y1="74" x2="146" y2="74" stroke="var(--line)"/>
+            <line x1="74" y1="2" x2="74" y2="146" stroke="var(--line)"/>
+            <circle id="bubble" cx="82" cy="72" r="7" fill="var(--t1)"/>
+          </svg>
+          <div class="axes" id="axes"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="panel" id="panel">
+    <div class="grip" id="grip"></div>
+    <div class="ptabs">
+      <button class="tab label on" data-tab="log">Log</button>
+      <button class="tab label" data-tab="serial">Serial</button>
+      <div class="tools">
+        <span class="mono" id="portname">no port</span>
+        <button id="pause">pause</button>
+        <button id="clear">clear</button>
+        <button id="toggle" title="ctrl + `">hide</button>
+      </div>
+    </div>
+    <div class="stream" id="stream"></div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+
+
+<script>
+const C = { ok:'var(--t3)', hot:'var(--warn)', fault:'var(--fault)', idle:'var(--t3)' };
+const label = { ok:'OK', hot:'HOT', fault:'NO REPLY', idle:'IDLE' };
+const joints = [
+  { id:11, leg:'L', name:'Yaw',   pos:2048, v:7.4, c:34, st:'ok' },
+  { id:12, leg:'L', name:'Upper', pos:1873, v:7.4, c:36, st:'ok' },
+  { id:13, leg:'L', name:'Knee',  pos:2311, v:7.3, c:58, st:'hot' },
+  { id:21, leg:'R', name:'Yaw',   pos:2050, v:7.4, c:33, st:'ok' },
+  { id:22, leg:'R', name:'Upper', pos:null, v:null, c:null, st:'fault' },
+  { id:23, leg:'R', name:'Knee',  pos:1790, v:7.4, c:35, st:'idle' },
+];
+const imu = { roll: 2.1, pitch: -0.4, yaw: 12.0 };
+let selected = 12, view = 'front';
+// FRONT: you face the robot, so its RIGHT leg is on the screen's LEFT.
+const order = () => view === 'front' ? ['R', 'L'] : ['L', 'R'];
+
+/* ---- joints ---- */
+const prevVals = {};
+let drawnSel = null;
+function renderJoints() {
+  const val = (j, x, u, warn) => {
+    const key = j.id + '/' + u, changed = key in prevVals && prevVals[key] !== x;
+    prevVals[key] = x;
+    return x == null ? '<span class="dim num">—</span>'
+    : `<span class="num${changed ? ' chg' : ''}" data-copy="ID ${j.id} ${x}${u ? ' ' + u : ''}" ${warn ? 'style="color:var(--warn)"' : ''}>${x}${u ? `<small>${u}</small>` : ''}</span>`;
+  };
+  document.getElementById('legs').innerHTML = order().map(leg => `
+    <div>
+      <div class="leghead"><span class="label" style="color:var(--t2)">${leg === 'L' ? 'Left leg' : 'Right leg'}</span></div>
+      <div class="colhead"><span>pos</span><span>volt</span><span>temp</span></div>
+      ${joints.filter(j => j.leg === leg).map(j => `
+        <div class="jb ${j.id === selected ? 'sel' + (drawnSel !== selected ? ' enter' : '') : ''}" data-id="${j.id}">
+          <div class="row1"><span class="nm"><span class="id">${j.id}</span>${j.name}</span>
+            <span class="st" style="color:${C[j.st]}"><i class="sq" style="background:${C[j.st]}"></i>${label[j.st]}</span></div>
+          <div class="vals">${val(j, j.pos, '')}${val(j, j.v, 'V')}${val(j, j.c, '°C', j.st === 'hot')}</div>
+        </div>`).join('')}
+    </div>`).join('');
+  drawnSel = selected;
+}
+
+/* ---- imu ---- */
+const hist = { roll: [], pitch: [], yaw: [] };
+const f1 = v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + '°';
+const spark = (arr, lo, hi) => arr.map((v, i) => `${(i / 59 * 200).toFixed(1)},${(23 - (v - lo) / (hi - lo) * 22).toFixed(1)}`).join(' ');
+function renderImu() {
+  document.getElementById('axes').innerHTML = ['roll', 'pitch', 'yaw'].map(k => {
+    const [lo, hi] = k === 'yaw' ? [imu.yaw - 4, imu.yaw + 4] : [-6, 6];
+    const sc = scrub && scrub.k === k, i = sc ? scrub.i : 59, v = hist[k][i] ?? imu[k];
+    const x = (i / 59 * 200).toFixed(1);
+    return `<div class="axis${sc ? ' scrub' : ''}" data-k="${k}"><span class="k">${sc ? '−' + ((59 - i) * .5).toFixed(1) + ' s' : k[0].toUpperCase() + k.slice(1)}</span>
+      <svg viewBox="0 0 200 24" preserveAspectRatio="none"><line x1="0" y1="12" x2="200" y2="12" stroke="var(--line)" stroke-dasharray="2 3"/><polyline fill="none" stroke="var(--accent)" stroke-width="1.2" points="${spark(hist[k], lo, hi)}"/>${sc ? `<line x1="${x}" y1="0" x2="${x}" y2="24" stroke="var(--t2)" stroke-width="1" vector-effect="non-scaling-stroke"/>` : ''}</svg>
+      <span class="v num" data-copy="${k} ${f1(v)}">${f1(v)}</span></div>`;
+  }).join('');
+  const b = document.getElementById('bubble');
+  b.setAttribute('cx', 74 + (view === 'front' ? -1 : 1) * imu.roll * 5);
+  b.setAttribute('cy', 74 - imu.pitch * 5);
+}
+
+let scrub = null;
+document.getElementById('axes').addEventListener('mousemove', e => {
+  const a = e.target.closest('.axis'), svg = a && a.querySelector('svg'); if (!svg) return;
+  const r = svg.getBoundingClientRect(), f = (e.clientX - r.left) / r.width;
+  scrub = f < 0 || f > 1 ? null : { k: a.dataset.k, i: Math.round(f * 59) }; renderImu();
+});
+document.getElementById('axes').addEventListener('mouseleave', () => { scrub = null; renderImu(); });
+
+/* ---- robot: neutral joints, only the selected one takes the accent ---- */
+function drawRobot() {
+  // Seen from slightly above and in front: the pelvis top face recedes, the
+  // feet point toward the viewer and widen at the toes. In FRONT view the
+  // robot faces you, so its RIGHT leg is on the screen's LEFT.
+  const [leftSide, rightSide] = order();
+  const facing = view === 'front';
+  const mono = 'font-family="IBM Plex Mono, ui-monospace" font-size="10"';
+  const sans = 'font-family="Archivo, sans-serif" font-size="8" letter-spacing="1.6"';
+  const leg = (x, side) => {
+    const ids = joints.filter(j => j.leg === side).map(j => j.id);
+    const lab = x < 150 ? -22 : 22;
+    const foot = facing
+      ? `<polygon points="${x-17},296 ${x+17},296 ${x+30},314 ${x-30},314" fill="var(--surface)" stroke="var(--line-strong)"/>
+         <rect x="${x-30}" y="314" width="60" height="6" fill="var(--line-strong)"/>`
+      : `<rect x="${x-24}" y="296" width="48" height="8" fill="var(--line-strong)"/>
+         <polygon points="${x-24},296 ${x+24},296 ${x+18},288 ${x-18},288" fill="var(--surface)" stroke="var(--line-strong)"/>`;
+    return `
+    <rect x="${x-8}" y="88" width="16" height="100" fill="var(--line-strong)"/>
+    <rect x="${x-8}" y="188" width="16" height="108" fill="var(--line-strong)"/>
+    <line x1="${x+(x<150?-8:8)}" y1="88" x2="${x+(x<150?-8:8)}" y2="296" stroke="var(--surface)" stroke-width="1"/>
+    ${foot}
+    ${ids.map((id, i) => { const y = [100, 150, 225][i], s = id === selected, st = joints.find(j => j.id === id).st, dot = s ? 'var(--accent)' : st === 'fault' ? 'var(--fault)' : st === 'hot' ? 'var(--warn)' : 'var(--t2)'; return `
+      <g class="rj" data-id="${id}" style="cursor:pointer">
+        <circle cx="${x}" cy="${y}" r="12" fill="var(--bg)" stroke="${s ? 'var(--accent)' : 'none'}" stroke-width="1.5"/>
+        <circle cx="${x}" cy="${y}" r="5.5" fill="${dot}"/>
+        <text x="${x + lab}" y="${y + 4}" fill="${s ? 'var(--accent)' : st === 'fault' ? 'var(--fault)' : 'var(--t3)'}" ${mono} text-anchor="${lab < 0 ? 'end' : 'start'}">${id}</text>
+      </g>`; }).join('')}
+    <text x="${x}" y="336" fill="var(--t3)" ${mono} text-anchor="middle">${side}</text>`;
+  };
+  const roll = (facing ? -1 : 1) * imu.roll;
+  document.getElementById('robot').innerHTML = `
+    <line x1="10" y1="320" x2="290" y2="320" stroke="var(--line)" stroke-dasharray="3 4"/>
+    <g transform="rotate(${roll} 150 320)">
+      <polygon points="80,62 220,62 208,46 92,46" fill="var(--surface)" stroke="var(--line-strong)"/>
+      <rect x="80" y="62" width="140" height="28" fill="var(--bg)" stroke="var(--line-strong)" stroke-width="1.5"/>
+      ${facing
+        ? `<text x="150" y="79" fill="var(--t3)" ${sans} text-anchor="middle">FRONT</text>`
+        : `<line x1="132" y1="76" x2="168" y2="76" stroke="var(--line-strong)" stroke-width="3"/>`}
+      ${leg(105, leftSide)}${leg(195, rightSide)}
+    </g>`;
+}
+
+document.getElementById('view').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  view = b.dataset.v;
+  document.querySelectorAll('#view button').forEach(x => x.classList.toggle('on', x === b));
+  renderJoints(); drawRobot(); renderImu();
+};
+
+/* ---- bottom panel ---- */
+let tab = 'log', paused = false, connected = false;
+const logLines = [
+  ['14:17:59', 'INFO', 'serial attached'],
+  ['14:18:02', 'INFO', 'scan started'],
+  ['14:31:50', 'WARN', 'ID 13 temp 58 °C'],
+  ['14:32:08', 'ERROR', 'ID 22 no reply'],
+];
+const rawLines = [];
+const lvColor = { INFO: 'var(--t3)', WARN: 'var(--warn)', ERROR: 'var(--fault)', MOTION: 'var(--accent)' };
+let shown = { log: 0, serial: 0 };
+function renderStream() {
+  const el = document.getElementById('stream');
+  const src = tab === 'log' ? logLines : rawLines, from = shown[tab] && src.length > shown[tab] ? shown[tab] : src.length;
+  shown[tab] = src.length;
+  const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 24;
+  el.innerHTML = tab === 'log'
+    ? logLines.map(([t, lv, m], n) => `<div class="ln${n >= from ? ' new' : ''}"><span class="t">${t}</span><span class="lv" style="color:${lvColor[lv]}">${lv}</span><span class="m" style="${lv !== 'INFO' ? `color:${lvColor[lv]}` : ''}" data-copy="${t} ${lv} ${m}">${m}</span></div>`).join('')
+    : rawLines.map(([t, m], n) => `<div class="ln raw${n >= from ? ' new' : ''}"><span class="t">${t}</span><span class="lv">RX</span><span class="m" data-copy='${m}'>${m}</span></div>`).join('')
+      || '<div class="ln raw"><span></span><span></span><span class="m">not connected</span></div>';
+  if (atBottom && !paused) el.scrollTop = el.scrollHeight;
+}
+const now = () => new Date().toTimeString().slice(0, 8);
+function log(lv, m) { logLines.push([now(), lv, m]); if (logLines.length > 500) logLines.shift(); renderStream(); }
+document.querySelectorAll('.ptabs .tab').forEach(b => b.onclick = () => {
+  tab = b.dataset.tab;
+  document.querySelectorAll('.ptabs .tab').forEach(x => x.classList.toggle('on', x === b));
+  renderStream();
+});
+document.getElementById('connect').onclick = e => {
+  connected = !connected;
+  e.target.textContent = connected ? 'Disconnect' : 'Connect ESP32';
+  e.target.classList.toggle('on', connected);
+  document.getElementById('portdot').style.background = connected ? 'var(--t1)' : 'var(--off)';
+  document.getElementById('portdot').classList.toggle('live', connected);
+  document.getElementById('src').textContent = connected ? 'LIVE · usbmodem1101' : 'MOCK';
+  document.getElementById('portname').textContent = connected ? 'cu.usbmodem1101 · 115200' : 'no port';
+  log('INFO', connected ? 'serial attached · cu.usbmodem1101' : 'serial detached');
+};
+document.getElementById('pause').onclick = e => { paused = !paused; e.target.textContent = paused ? 'resume' : 'pause'; };
+document.getElementById('clear').onclick = () => { (tab === 'log' ? logLines : rawLines).length = 0; renderStream(); };
+function togglePanel() {
+  document.body.classList.toggle('panel-closed');
+  document.getElementById('toggle').textContent = document.body.classList.contains('panel-closed') ? 'show' : 'hide';
+}
+document.getElementById('toggle').onclick = togglePanel;
+document.getElementById('grip').onmousedown = e => {
+  const y0 = e.clientY, h0 = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--panel-h'));
+  const mv = ev => document.documentElement.style.setProperty('--panel-h', Math.max(60, Math.min(innerHeight * .6, h0 + y0 - ev.clientY)) + 'px');
+  const up = () => { removeEventListener('mousemove', mv); removeEventListener('mouseup', up); };
+  addEventListener('mousemove', mv); addEventListener('mouseup', up);
+};
+
+/* ---- motion ---- */
+const programs = {
+  squat: { ids: [12, 13, 22, 23], acts: ['しゃがむ', '立つ'] },
+  left:  { ids: [12, 13], acts: ['A方向へ', '中立へ'] },
+  right: { ids: [22, 23], acts: ['A方向へ', '中立へ'] },
+};
+let prog = 'squat', running = null;
+function blocked() {
+  const bad = joints.find(j => j.st === 'fault' && programs[prog].ids.includes(j.id));
+  return bad ? `ID ${bad.id} 応答なし` : null;
+}
+function renderActs() {
+  const p = programs[prog], why = running ? null : blocked();
+  document.getElementById('mstate').textContent = (running ? 'MOVING' : why ? 'BLOCKED' : 'READY') + ' · ID ' + p.ids.join(' ');
+  document.getElementById('acts').innerHTML = p.acts.map(a =>
+    `<button class="act ${running === a ? 'running' : ''}" ${why || running ? 'disabled' : ''} data-a="${a}">${a}${why ? `<span class="why">${why}</span>` : running === a ? '<span class="why">動作中</span>' : ''}</button>`).join('');
+}
+document.getElementById('prog').onclick = e => {
+  const b = e.target.closest('button'); if (!b || running) return;
+  prog = b.dataset.p;
+  document.querySelectorAll('#prog button').forEach(x => x.classList.toggle('on', x === b));
+  renderActs();
+};
+document.getElementById('acts').onclick = e => {
+  const b = e.target.closest('.act'); if (!b || b.disabled) return;
+  running = b.dataset.a; renderActs(); log('MOTION', `${running} · start`);
+  setTimeout(() => { if (running) { log('MOTION', `${running} · done`); running = null; renderActs(); } }, 1800);
+};
+function stop() { running = null; renderActs(); log('ERROR', 'STOP pressed'); }
+document.getElementById('stop').onclick = stop;
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.body.classList.contains('motion')) stop();
+  if (e.key === '`' && e.ctrlKey) togglePanel();
+});
+
+/* ---- nav, selection, copy, font picker ---- */
+document.querySelectorAll('.nav button[data-page]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.nav button').forEach(x => x.classList.toggle('on', x === b));
+  document.body.classList.toggle('motion', b.dataset.page === 'motion');
+});
+document.addEventListener('click', e => {
+  const c = e.target.closest('[data-copy]');
+  if (c) return copy(c.dataset.copy);
+  const j = e.target.closest('.jb, .rj');
+  if (j) { selected = +j.dataset.id; renderJoints(); drawRobot(); }
+});
+document.getElementById('copyall').onclick = () => copy([
+  `NEXUS ${new Date().toISOString().slice(0, 19).replace('T', ' ')} · ${document.getElementById('src').textContent} · ERROR`,
+  `IMU  roll ${f1(imu.roll)}  pitch ${f1(imu.pitch)}  yaw ${f1(imu.yaw)}   bus 7.38 V`, '',
+  '| joint | id | pos | V | °C | status |', '|---|---|---|---|---|---|',
+  ...joints.map(j => `| ${j.leg === 'L' ? 'LEFT' : 'RIGHT'}_${j.name.toUpperCase()} | ${j.id} | ${j.pos ?? '—'} | ${j.v ?? '—'} | ${j.c ?? '—'} | ${label[j.st]} |`)
+].join('\n'), 'snapshot');
+function copy(text, what) {
+  navigator.clipboard?.writeText(text).catch(() => {});
+  const t = document.getElementById('toast');
+  t.textContent = 'copied · ' + (what || text);
+  t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 1200);
+}
+
+/* ---- mock live data ---- */
+let tk = 0;
+for (let i = 0; i < 60; i++) { hist.roll.push(2 + Math.sin(i / 6) * .6); hist.pitch.push(-.4 + Math.cos(i / 5) * .4); hist.yaw.push(12 + Math.sin(i / 9) * .3); }
+setInterval(() => {
+  for (const j of joints) if (j.pos != null && j.st !== 'idle' && Math.random() < .5) j.pos += Math.round((Math.random() - .5) * 6);
+  renderJoints();
+}, 2000);
+setInterval(() => {
+  tk++;
+  imu.roll = 2.1 + Math.sin(tk / 6) * .6; imu.pitch = -.4 + Math.cos(tk / 5) * .4; imu.yaw = 12 + Math.sin(tk / 9) * .3;
+  for (const k in hist) { hist[k].push(imu[k]); hist[k].shift(); }
+  renderImu(); drawRobot();
+  if (connected) {
+    rawLines.push([now(), `{"type":"imu","roll":${imu.roll.toFixed(2)},"pitch":${imu.pitch.toFixed(2)},"yaw":${imu.yaw.toFixed(2)}}`]);
+    if (tk % 4 === 0) rawLines.push([now(), `{"type":"servo","id":13,"position_raw":2311,"voltage_v":7.3,"temperature_c":58}`]);
+    if (rawLines.length > 500) rawLines.splice(0, rawLines.length - 500);
+    if (tab === 'serial') renderStream();
+  }
+}, 500);
+
+renderJoints(); renderImu(); drawRobot(); renderStream(); renderActs();
+</script>
+</body>
+</html>

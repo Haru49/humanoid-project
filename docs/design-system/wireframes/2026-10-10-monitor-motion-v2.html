@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEXUS wireframe v2</title>
+<!--
+  Wireframe v2 (2026-10-10). Layout and behaviour only.
+  v2: smaller robot, roomier joint table, CONNECT in header,
+  robot joints neutral except the selected one, OK is uncoloured.
+  Changes from v0 (Haruta's review):
+  - Joint data on one side, IMU next to it with equal weight
+  - Bottom strip replaced by a VS Code-style panel: streaming log + serial,
+    with the ESP32 connect button
+  - Less dead space; robot view gets the freed width
+  Colours: palette 04 "Cognac". Type: placeholder. Robot: 2D stand-in for 3D.
+-->
+<style>
+  :root {
+    --bg:#141110; --surface:#1c1816; --sunken:#100e0d; --line:#2c2622; --line-strong:#40382f;
+    --t1:#ede6dc; --t2:#aba196; --t3:#6f665d;
+    --accent:#c08254; --on-accent:#141110;
+    --ok:#9aae86; --warn:#d9b45f; --fault:#c9473f; --off:#6f665d;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+    --panel-h: 200px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body { background: var(--bg); color: var(--t1); font: 13px/1.5 -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif; }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  .label { font-size: 10px; letter-spacing: .14em; color: var(--t3); text-transform: uppercase; }
+
+  .app { height: 100vh; display: grid; grid-template-rows: 44px 1fr auto; }
+  body.panel-closed { --panel-h: 0px; }
+
+  /* ---- top bar ---- */
+  .top { display: flex; align-items: center; gap: 28px; padding: 0 20px; border-bottom: 1px solid var(--line); }
+  .brand { letter-spacing: .28em; font-size: 12px; }
+  .nav { display: flex; height: 100%; }
+  .nav button { padding: 0 12px; color: var(--t3); border-bottom: 1px solid transparent; font-size: 12px; }
+  .nav button.on { color: var(--t1); border-bottom-color: var(--accent); }
+  .sp { flex: 1; }
+  .src { font-size: 11px; color: var(--t2); letter-spacing: .06em; }
+  .sys { font-size: 12px; letter-spacing: .12em; display: flex; gap: 8px; align-items: center; padding-left: 20px; border-left: 1px solid var(--line); height: 100%; }
+  .sq { width: 7px; height: 7px; display: inline-block; flex: none; }
+  .ghost { font-size: 11px; color: var(--t2); border: 1px solid var(--line-strong); padding: 4px 10px; letter-spacing: .06em; }
+  .ghost:hover { color: var(--t1); border-color: var(--t3); }
+
+  /* ---- main: [motion] | robot | data ---- */
+  .main { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(560px, 1.25fr); min-height: 0; }
+  body.motion .main { grid-template-columns: 232px minmax(240px, 1fr) minmax(540px, 1.25fr); }
+
+  .robot { position: relative; display: grid; place-items: center; min-width: 0; }
+  .robot .tl { position: absolute; top: 16px; left: 20px; }
+  .robot .tr { position: absolute; top: 14px; right: 20px; font-size: 10px; color: var(--t3); }
+  #robot { width: min(78%, 320px); max-height: 80%; }
+
+  .data { border-left: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; overflow: auto; }
+  .sec { padding: 20px 28px; }
+  .sec + .sec { border-top: 1px solid var(--line); }
+  .sechead { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .sechead .meta { font-size: 10px; color: var(--t3); }
+
+  /* joints table */
+  table { width: 100%; border-collapse: collapse; }
+  th { font-weight: 400; font-size: 10px; letter-spacing: .1em; color: var(--t3); text-align: right; padding: 4px 12px 8px; text-transform: uppercase; }
+  th:first-child, th:nth-child(2) { text-align: left; }
+  th:last-child, td:last-child { text-align: left; padding-left: 24px; width: 120px; }
+  td small { font-size: 10px; color: var(--t3); margin-left: 3px; }
+  td { padding: 0 12px; height: 40px; text-align: right; font-size: 15px; border-top: 1px solid var(--line); }
+  td.id { color: var(--t3); text-align: left; width: 44px; font-size: 13px; }
+  td.nm { text-align: left; color: var(--t2); font-size: 12px; letter-spacing: .04em; }
+  td.dim { color: var(--t3); }
+  tr.grp td { height: 32px; padding-top: 12px; border-top: 0; font-size: 10px; letter-spacing: .14em; color: var(--t3); text-align: left; padding-top: 6px; }
+  tr.j { cursor: pointer; }
+  tr.j:hover td { background: var(--surface); }
+  tr.j.sel td { background: var(--surface); }
+  tr.j.sel td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
+  .st { font-size: 10px; letter-spacing: .08em; display: inline-flex; gap: 6px; align-items: center; }
+  .st .sq { width: 6px; height: 6px; }
+
+  .busrow { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+  .busrow .v { font-size: 13px; }
+  .busrow svg { width: 100%; height: 22px; }
+
+  /* imu */
+  .imu { display: grid; grid-template-columns: 120px 1fr; gap: 20px; align-items: center; }
+  .axes { display: grid; gap: 2px; }
+  .axis { display: grid; grid-template-columns: 44px 72px 1fr; gap: 10px; align-items: center; height: 34px; border-top: 1px solid var(--line); }
+  .axis:first-child { border-top: 0; }
+  .axis .k { font-size: 11px; color: var(--t3); }
+  .axis .v { font-size: 18px; font-weight: 300; text-align: right; }
+  .axis svg { width: 100%; height: 22px; }
+
+  /* motion rail */
+  .rail { display: none; border-right: 1px solid var(--line); flex-direction: column; min-height: 0; }
+  body.motion .rail { display: flex; }
+  .rail .sec { padding: 16px; }
+  .prog button { display: block; width: 100%; text-align: left; padding: 7px 10px; color: var(--t2); border-left: 2px solid transparent; font-size: 12px; }
+  .prog button.on { color: var(--t1); border-left-color: var(--accent); background: var(--surface); }
+  .mstate { font-size: 11px; color: var(--t2); }
+  .acts { display: flex; flex-direction: column; gap: 8px; }
+  .act { border: 1px solid var(--line-strong); padding: 12px; text-align: left; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .act:hover:not(:disabled) { border-color: var(--accent); }
+  .act:disabled { color: var(--t3); cursor: not-allowed; }
+  .act .why { font-size: 10px; color: var(--t3); }
+  .act.running { border-color: var(--accent); color: var(--accent); }
+  .stop { margin: auto 16px 16px; padding: 16px; background: var(--fault); color: var(--bg); letter-spacing: .2em; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+  .stop kbd { font: 10px var(--mono); opacity: .7; letter-spacing: 0; }
+
+  /* ---- bottom panel (VS Code style) ---- */
+  .panel { height: calc(var(--panel-h) + 34px); border-top: 1px solid var(--line); background: var(--sunken); display: grid; grid-template-rows: 34px 1fr; position: relative; }
+  .grip { position: absolute; top: -3px; left: 0; right: 0; height: 6px; cursor: ns-resize; }
+  .ptabs { display: flex; align-items: stretch; gap: 0; padding: 0 12px 0 8px; border-bottom: 1px solid var(--line); }
+  .ptabs .tab { padding: 0 12px; font-size: 10px; letter-spacing: .14em; color: var(--t3); border-bottom: 1px solid transparent; }
+  .ptabs .tab.on { color: var(--t1); border-bottom-color: var(--t2); }
+  .ptabs .tools { margin-left: auto; display: flex; align-items: center; gap: 14px; font-size: 11px; color: var(--t3); }
+  .ptabs .tools .icon { color: var(--t3); font-size: 11px; }
+  .ptabs .tools .icon:hover { color: var(--t1); }
+  .port { display: inline-flex; align-items: center; gap: 6px; }
+  .connect { font-size: 11px; padding: 5px 12px; background: var(--accent); color: var(--on-accent); font-weight: 500; border: 1px solid var(--accent); color: var(--accent); letter-spacing: .06em; }
+  .connect.on { background: none; border-color: var(--line-strong); color: var(--t2); font-weight: 400; }
+  .stream { overflow: auto; padding: 6px 20px 10px; font: 12px/1.65 var(--mono); }
+  body.panel-closed .stream { display: none; }
+  .ln { display: grid; grid-template-columns: 72px 64px 1fr; gap: 12px; white-space: nowrap; }
+  .ln .t { color: var(--t3); }
+  .ln .lv { color: var(--t3); }
+  .ln .m { color: var(--t2); overflow: hidden; text-overflow: ellipsis; }
+  .ln.raw .m { color: var(--t3); }
+
+  [data-copy] { cursor: copy; }
+  [data-copy]:hover { color: var(--accent); }
+  .toast { position: fixed; top: 56px; left: 50%; transform: translateX(-50%); background: var(--t1); color: var(--bg); font: 11px var(--mono); padding: 5px 12px; opacity: 0; transition: opacity .15s; pointer-events: none; z-index: 9; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <span class="brand">NEXUS</span>
+    <nav class="nav">
+      <button class="on" data-page="monitor">Monitor</button>
+      <button data-page="motion">Motion</button>
+      <button>Logs</button>
+      <button>Tools</button>
+    </nav>
+    <span class="sp"></span>
+    <button class="ghost mono" id="copyall">COPY ALL</button>
+    <span class="port mono src"><i class="sq" id="portdot" style="background:var(--off)"></i><span id="src">MOCK</span></span>
+    <button class="connect mono" id="connect">CONNECT ESP32</button>
+    <span class="sys mono" id="sys" style="color:var(--fault)"><i class="sq" style="background:var(--fault)"></i>ERROR</span>
+  </header>
+
+  <main class="main">
+    <aside class="rail">
+      <div class="sec">
+        <div class="label" style="margin-bottom:10px">Motion</div>
+        <div class="prog" id="prog">
+          <button class="on" data-p="squat">屈伸</button>
+          <button data-p="left">左脚 平面リンク</button>
+          <button data-p="right">右脚 平面リンク</button>
+        </div>
+      </div>
+      <div class="sec"><div class="mstate mono" id="mstate"></div></div>
+      <div class="sec"><div class="acts" id="acts"></div></div>
+      <button class="stop mono" id="stop">STOP <kbd>esc</kbd></button>
+    </aside>
+
+    <section class="robot">
+      <span class="label tl">Robot · front view</span>
+      <span class="tr mono">3D · drag to orbit</span>
+      <svg id="robot" viewBox="0 0 300 340"></svg>
+    </section>
+
+    <section class="data">
+      <div class="sec">
+        <div class="sechead"><span class="label">Joints</span><span class="meta mono">scan 2.0 s · click value to copy</span></div>
+        <table class="mono" id="joints"></table>
+        <div class="busrow">
+          <span class="mono"><span class="label">Bus&nbsp;</span> <span class="v" data-copy="bus 7.38 V">7.38 V</span></span>
+          <svg viewBox="0 0 200 22" preserveAspectRatio="none"><polyline fill="none" stroke="var(--t3)" stroke-width="1" points="0,9 10,8 20,10 30,9 40,7 50,9 60,12 70,13 80,11 90,10 100,14 110,16 120,14 130,12 140,13 150,11 160,12 170,14 180,13 190,12 200,13"/></svg>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sechead"><span class="label">IMU</span><span class="meta mono">BNO085 · 50 Hz · accuracy HIGH</span></div>
+        <div class="imu">
+          <svg viewBox="0 0 120 120" width="120" height="120">
+            <circle cx="60" cy="60" r="58" fill="none" stroke="var(--line-strong)"/>
+            <circle cx="60" cy="60" r="20" fill="none" stroke="var(--line)"/>
+            <line x1="2" y1="60" x2="118" y2="60" stroke="var(--line)"/>
+            <line x1="60" y1="2" x2="60" y2="118" stroke="var(--line)"/>
+            <circle id="bubble" cx="68" cy="58" r="7" fill="var(--t1)"/>
+          </svg>
+          <div class="axes mono" id="axes"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="panel" id="panel">
+    <div class="grip" id="grip"></div>
+    <div class="ptabs mono">
+      <button class="tab on" data-tab="log">LOG</button>
+      <button class="tab" data-tab="serial">SERIAL</button>
+      <div class="tools">
+        <span id="portname">no port</span>
+        <button class="icon" id="pause">pause</button>
+        <button class="icon" id="clear">clear</button>
+        <button class="icon" id="toggle" title="ctrl + `">hide</button>
+      </div>
+    </div>
+    <div class="stream" id="stream"></div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const S = { ok:'var(--t3)', hot:'var(--warn)', fault:'var(--fault)', idle:'var(--off)' };
+const label = { ok:'OK', hot:'HOT', fault:'NO REPLY', idle:'IDLE' };
+const joints = [
+  { id:11, leg:'L', name:'YAW',   pos:2048, v:7.4, c:34, st:'ok' },
+  { id:12, leg:'L', name:'UPPER', pos:1873, v:7.4, c:36, st:'ok' },
+  { id:13, leg:'L', name:'KNEE',  pos:2311, v:7.3, c:58, st:'hot' },
+  { id:21, leg:'R', name:'YAW',   pos:2050, v:7.4, c:33, st:'ok' },
+  { id:22, leg:'R', name:'UPPER', pos:null, v:null, c:null, st:'fault' },
+  { id:23, leg:'R', name:'KNEE',  pos:1790, v:7.4, c:35, st:'idle' },
+];
+const imu = { roll: 2.1, pitch: -0.4, yaw: 12.0 };
+let selected = 12;
+
+/* ---- joints ---- */
+function renderJoints() {
+  const cell = (j, x, u) => x == null ? '<td class="dim">—</td>'
+    : `<td data-copy="ID ${j.id} ${x}${u ? ' ' + u : ''}" ${u==='°C'&&j.st==='hot'?'style="color:var(--warn)"':''}>${x}${u ? `<small>${u}</small>` : ''}</td>`;
+  const rows = leg => joints.filter(j => j.leg === leg).map(j => `
+    <tr class="j ${j.id===selected?'sel':''}" data-id="${j.id}">
+      <td class="id">${j.id}</td><td class="nm">${j.name}</td>
+      ${cell(j,j.pos,'')}${cell(j,j.v,'V')}${cell(j,j.c,'°C')}
+      <td><span class="st" style="color:${S[j.st]}"><i class="sq" style="background:${S[j.st]}"></i>${label[j.st]}</span></td>
+    </tr>`).join('');
+  document.getElementById('joints').innerHTML =
+    `<tr><th>ID</th><th>Joint</th><th>Pos</th><th>Volt</th><th>Temp</th><th>Status</th></tr>
+     <tr class="grp"><td colspan="6">LEFT LEG</td></tr>${rows('L')}
+     <tr class="grp"><td colspan="6">RIGHT LEG</td></tr>${rows('R')}`;
+}
+
+/* ---- imu ---- */
+const hist = { roll: [], pitch: [], yaw: [] };
+function spark(arr, lo, hi) {
+  return arr.map((v, i) => `${(i / 59 * 200).toFixed(1)},${(22 - (v - lo) / (hi - lo) * 22).toFixed(1)}`).join(' ');
+}
+function renderImu() {
+  const f = v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + '°';
+  document.getElementById('axes').innerHTML = ['roll', 'pitch', 'yaw'].map(k => {
+    const [lo, hi] = k === 'yaw' ? [imu.yaw - 4, imu.yaw + 4] : [-6, 6];
+    return `<div class="axis"><span class="k">${k}</span><span class="v" data-copy="${k} ${f(imu[k])}">${f(imu[k])}</span>
+      <svg viewBox="0 0 200 22" preserveAspectRatio="none"><polyline fill="none" stroke="var(--accent)" stroke-width="1.2" points="${spark(hist[k], lo, hi)}"/></svg></div>`;
+  }).join('');
+  const b = document.getElementById('bubble');
+  b.setAttribute('cx', 60 + imu.roll * 4); b.setAttribute('cy', 60 - imu.pitch * 4);
+}
+
+/* ---- robot (2D stand-in for the 3D view). Screen-left = robot RIGHT. ---- */
+function drawRobot() {
+  const col = id => id === selected ? 'var(--accent)' : 'var(--t2)';
+  const ring = id => id === selected ? 'stroke="var(--accent)" stroke-width="1.5"' : 'stroke="none"';
+  const leg = (x, ids, side) => `
+    <line x1="${x}" y1="80" x2="${x}" y2="300" stroke="var(--line-strong)" stroke-width="10"/>
+    <rect x="${x-26}" y="298" width="52" height="8" fill="var(--line-strong)"/>
+    ${[[ids[0],100],[ids[1],150],[ids[2],225]].map(([id,y]) => `
+      <g class="rj" data-id="${id}" style="cursor:pointer">
+        <circle cx="${x}" cy="${y}" r="12" fill="var(--bg)" ${ring(id)}/>
+        <circle cx="${x}" cy="${y}" r="6" fill="${col(id)}"/>
+        <text x="${side==='R'?x-22:x+22}" y="${y+4}" fill="var(--t3)" font-family="ui-monospace,Menlo" font-size="10" text-anchor="${side==='R'?'end':'start'}">${id}</text>
+      </g>`).join('')}`;
+  document.getElementById('robot').innerHTML = `
+    <line x1="10" y1="306" x2="290" y2="306" stroke="var(--line)" stroke-dasharray="3 4"/>
+    <g transform="rotate(${imu.roll} 150 306)">
+      <rect x="80" y="60" width="140" height="24" fill="none" stroke="var(--line-strong)" stroke-width="2"/>
+      ${leg(105, [21,22,23], 'R')}${leg(195, [11,12,13], 'L')}
+      <text x="105" y="330" fill="var(--t3)" font-family="ui-monospace,Menlo" font-size="10" text-anchor="middle">R</text>
+      <text x="195" y="330" fill="var(--t3)" font-family="ui-monospace,Menlo" font-size="10" text-anchor="middle">L</text>
+    </g>`;
+}
+
+/* ---- bottom panel ---- */
+let tab = 'log', paused = false, connected = false;
+const logLines = [
+  ['14:17:59', 'INFO', 'serial attached'],
+  ['14:18:02', 'INFO', 'scan started'],
+  ['14:31:50', 'WARN', 'ID 13 temp 58 °C'],
+  ['14:32:08', 'ERROR', 'ID 22 no reply'],
+];
+const rawLines = [];
+const lvColor = { INFO: 'var(--t3)', WARN: 'var(--warn)', ERROR: 'var(--fault)', MOTION: 'var(--accent)' };
+function renderStream() {
+  const el = document.getElementById('stream');
+  const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 24;
+  el.innerHTML = tab === 'log'
+    ? logLines.map(([t, lv, m]) => `<div class="ln"><span class="t">${t}</span><span class="lv" style="color:${lvColor[lv]}">${lv}</span><span class="m" style="${lv!=='INFO'?`color:${lvColor[lv]}`:''}" data-copy="${t} ${lv} ${m}">${m}</span></div>`).join('')
+    : rawLines.map(([t, m]) => `<div class="ln raw"><span class="t">${t}</span><span class="lv">RX</span><span class="m" data-copy='${m}'>${m}</span></div>`).join('')
+      || '<div class="ln raw"><span></span><span></span><span class="m">not connected</span></div>';
+  if (atBottom && !paused) el.scrollTop = el.scrollHeight;
+}
+const now = () => new Date().toTimeString().slice(0, 8);
+function log(lv, m) { logLines.push([now(), lv, m]); if (logLines.length > 500) logLines.shift(); renderStream(); }
+
+document.querySelectorAll('.ptabs .tab').forEach(b => b.onclick = () => {
+  tab = b.dataset.tab;
+  document.querySelectorAll('.ptabs .tab').forEach(x => x.classList.toggle('on', x === b));
+  renderStream();
+});
+document.getElementById('connect').onclick = e => {
+  connected = !connected;
+  e.target.textContent = connected ? 'DISCONNECT' : 'CONNECT ESP32';
+  e.target.classList.toggle('on', connected);
+  document.getElementById('portdot').style.background = connected ? 'var(--ok)' : 'var(--off)';
+  document.getElementById('portname').textContent = connected ? 'cu.usbmodem1101' : 'no port';
+  document.getElementById('src').textContent = connected ? 'DEVICE · LIVE · cu.usbmodem1101' : 'MOCK';
+  log('INFO', connected ? 'serial attached · cu.usbmodem1101' : 'serial detached');
+};
+document.getElementById('pause').onclick = e => { paused = !paused; e.target.textContent = paused ? 'resume' : 'pause'; };
+document.getElementById('clear').onclick = () => { (tab === 'log' ? logLines : rawLines).length = 0; renderStream(); };
+function togglePanel() {
+  document.body.classList.toggle('panel-closed');
+  document.getElementById('toggle').textContent = document.body.classList.contains('panel-closed') ? 'show' : 'hide';
+}
+document.getElementById('toggle').onclick = togglePanel;
+document.getElementById('grip').onmousedown = e => {
+  const y0 = e.clientY, h0 = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--panel-h'));
+  const mv = ev => document.documentElement.style.setProperty('--panel-h', Math.max(60, Math.min(window.innerHeight * .6, h0 + y0 - ev.clientY)) + 'px');
+  const up = () => { removeEventListener('mousemove', mv); removeEventListener('mouseup', up); };
+  addEventListener('mousemove', mv); addEventListener('mouseup', up);
+};
+
+/* ---- motion ---- */
+const programs = {
+  squat: { ids: [12, 13, 22, 23], acts: ['しゃがむ', '立つ'] },
+  left:  { ids: [12, 13], acts: ['A方向へ', '中立へ'] },
+  right: { ids: [22, 23], acts: ['A方向へ', '中立へ'] },
+};
+let prog = 'squat', running = null;
+function blocked() {
+  const bad = joints.find(j => j.st === 'fault' && programs[prog].ids.includes(j.id));
+  return bad ? `ID ${bad.id} 応答なし` : null;
+}
+function renderActs() {
+  const p = programs[prog], why = running ? null : blocked();
+  document.getElementById('mstate').textContent = (running ? 'MOVING' : why ? 'BLOCKED' : 'READY') + ' · ID ' + p.ids.join(' ');
+  document.getElementById('acts').innerHTML = p.acts.map(a =>
+    `<button class="act ${running===a?'running':''}" ${why || running ? 'disabled' : ''} data-a="${a}">${a}${why ? `<span class="why mono">${why}</span>` : running===a ? '<span class="why mono">動作中</span>' : ''}</button>`).join('');
+}
+document.getElementById('prog').onclick = e => {
+  const b = e.target.closest('button'); if (!b || running) return;
+  prog = b.dataset.p;
+  document.querySelectorAll('#prog button').forEach(x => x.classList.toggle('on', x === b));
+  renderActs();
+};
+document.getElementById('acts').onclick = e => {
+  const b = e.target.closest('.act'); if (!b || b.disabled) return;
+  running = b.dataset.a; renderActs(); log('MOTION', `${running} · start`);
+  setTimeout(() => { if (running) { log('MOTION', `${running} · done`); running = null; renderActs(); } }, 1800);
+};
+function stop() { running = null; renderActs(); log('ERROR', 'STOP pressed'); }
+document.getElementById('stop').onclick = stop;
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.body.classList.contains('motion')) stop();
+  if (e.key === '`' && e.ctrlKey) togglePanel();
+});
+
+/* ---- nav, selection, copy ---- */
+document.querySelectorAll('.nav button[data-page]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.nav button').forEach(x => x.classList.toggle('on', x === b));
+  document.body.classList.toggle('motion', b.dataset.page === 'motion');
+});
+document.addEventListener('click', e => {
+  const c = e.target.closest('[data-copy]');
+  if (c) return copy(c.dataset.copy);
+  const j = e.target.closest('tr.j, .rj');
+  if (j) { selected = +j.dataset.id; renderJoints(); drawRobot(); }
+});
+const f1 = v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + '°';
+document.getElementById('copyall').onclick = () => copy([
+  `NEXUS ${new Date().toISOString().slice(0, 19).replace('T', ' ')} · ${document.getElementById('src').textContent} · ERROR`,
+  `IMU  roll ${f1(imu.roll)}  pitch ${f1(imu.pitch)}  yaw ${f1(imu.yaw)}   bus 7.38 V`, '',
+  '| joint | id | pos | V | °C | status |', '|---|---|---|---|---|---|',
+  ...joints.map(j => `| ${j.leg === 'L' ? 'LEFT' : 'RIGHT'}_${j.name} | ${j.id} | ${j.pos ?? '—'} | ${j.v ?? '—'} | ${j.c ?? '—'} | ${label[j.st]} |`)
+].join('\n'), 'snapshot');
+function copy(text, what) {
+  navigator.clipboard?.writeText(text).catch(() => {});
+  const t = document.getElementById('toast');
+  t.textContent = 'copied · ' + (what || text);
+  t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 1200);
+}
+
+/* ---- mock live data ---- */
+let tk = 0;
+for (let i = 0; i < 60; i++) { hist.roll.push(2 + Math.sin(i / 6) * .6); hist.pitch.push(-.4 + Math.cos(i / 5) * .4); hist.yaw.push(12 + Math.sin(i / 9) * .3); }
+setInterval(() => {
+  tk++;
+  imu.roll = 2.1 + Math.sin(tk / 6) * .6; imu.pitch = -.4 + Math.cos(tk / 5) * .4; imu.yaw = 12 + Math.sin(tk / 9) * .3;
+  for (const k in hist) { hist[k].push(imu[k]); hist[k].shift(); }
+  renderImu(); drawRobot();
+  if (connected) {
+    rawLines.push([now(), `{"type":"imu","roll":${imu.roll.toFixed(2)},"pitch":${imu.pitch.toFixed(2)},"yaw":${imu.yaw.toFixed(2)}}`]);
+    if (tk % 4 === 0) rawLines.push([now(), `{"type":"servo","id":13,"position_raw":2311,"voltage_v":7.3,"temperature_c":58}`]);
+    if (rawLines.length > 500) rawLines.splice(0, rawLines.length - 500);
+    if (tab === 'serial') renderStream();
+  }
+}, 500);
+
+renderJoints(); renderImu(); drawRobot(); renderStream(); renderActs();
+</script>
+</body>
+</html>
