@@ -1,0 +1,198 @@
+.nx-statusbar {
+  grid-area: status;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--nx-radius-lg);
+  overflow: hidden;
+}
+
+/*
+ * The row wraps rather than overflowing, and every field can shrink except
+ * the ones that must stay whole: the feed badge, the emergency stop, and the
+ * device control. At any width the answer to "am I looking at a robot?" is
+ * still on screen.
+ */
+.nx-statusbar__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--nx-gap-sm) var(--nx-gap-lg);
+  padding: clamp(10px, 0.9vw, 14px) var(--nx-gap);
+  min-height: clamp(52px, 4.2vw, 64px);
+}
+
+.nx-statusbar__feed {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+  padding-right: var(--nx-gap-lg);
+  border-right: 1px solid var(--nx-hairline);
+}
+
+.nx-statusbar__mode {
+  font-size: var(--nx-size-metadata);
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: var(--nx-text-1);
+}
+
+.nx-statusbar__field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.nx-statusbar__value {
+  font-size: var(--nx-size-metadata);
+  letter-spacing: 0.08em;
+  color: var(--nx-text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nx-statusbar__value--dim {
+  color: var(--nx-text-3);
+}
+
+/* Link state carries meaning, so it carries colour. Green appears only when a
+ * real device is actually delivering telemetry. */
+.nx-statusbar__value[data-link='connected'] {
+  color: var(--nx-nature);
+}
+
+.nx-statusbar__value[data-link='connecting'] {
+  color: var(--nx-info);
+}
+
+.nx-statusbar__value[data-link='stale'],
+.nx-statusbar__value[data-link='failed'] {
+  color: var(--nx-critical);
+}
+
+.nx-statusbar__value[data-link='disconnected'] {
+  color: var(--nx-text-4);
+}
+
+.nx-statusbar__value[data-state='STANDBY'] {
+  color: var(--nx-nature);
+}
+
+.nx-statusbar__value[data-state='CALIBRATION'] {
+  color: var(--nx-warning);
+}
+
+.nx-statusbar__value[data-state='ERROR'] {
+  color: var(--nx-critical);
+}
+
+.nx-statusbar__value[data-state='OFFLINE'] {
+  color: var(--nx-text-4);
+}
+
+/* An unsampled bus is neither healthy nor broken, and is coloured as neither. */
+.nx-statusbar__value[data-bus='unsampled'] {
+  color: var(--nx-text-4);
+}
+
+.nx-statusbar__value[data-bus='sampled'] {
+  color: var(--nx-text-2);
+}
+
+/* ---- Emergency stop ---------------------------------------------------- *
+ * Present whenever real hardware is powered. Outlined rather than filled, so
+ * it stays readable without competing with an actual alert. It never shrinks
+ * and never wraps mid-phrase. */
+.nx-statusbar__estop {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  flex: none;
+  margin-left: auto;
+  padding: 7px 13px;
+  border: 1px solid var(--nx-critical-line);
+  border-radius: var(--nx-radius-sm);
+  font-size: var(--nx-size-caption);
+  letter-spacing: 0.08em;
+  color: #ffc0c2;
+  white-space: nowrap;
+}
+
+.nx-statusbar__estop-mark {
+  width: 3px;
+  height: 14px;
+  border-radius: var(--nx-radius-pill);
+  background: var(--nx-critical);
+}
+
+.nx-statusbar__action {
+  flex: none;
+}
+
+/* Push the control to the right when no emergency notice is present. When one
+ * is, the notice takes the auto margin and the control follows it. Equal
+ * specificity, so source order decides — keep the reset second. */
+.nx-statusbar__row > .nx-statusbar__action {
+  margin-left: auto;
+}
+
+.nx-statusbar__estop ~ .nx-statusbar__action {
+  margin-left: 0;
+}
+
+/* ---- Alert strip ------------------------------------------------------- */
+
+.nx-statusbar__alert {
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  padding: clamp(10px, 0.9vw, 14px) var(--nx-gap);
+  align-items: flex-start;
+}
+
+.nx-statusbar__alert-body {
+  display: flex;
+  align-items: baseline;
+  gap: 6px 14px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.nx-statusbar__alert-title {
+  font-size: var(--nx-size-telemetry);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.nx-statusbar__alert-detail {
+  font-size: var(--nx-size-metadata);
+  opacity: 0.86;
+}
+
+/*
+ * Once the sidebar is a top rail the status bar has the full window width but
+ * much less vertical budget, so the secondary fields step aside. Provenance
+ * and uptime are useful, not critical; the feed badge, system state, link
+ * state, emergency stop and control all stay.
+ */
+@media (max-width: 1023px) {
+  .nx-statusbar__feed {
+    border-right: none;
+    padding-right: 0;
+  }
+
+  .nx-statusbar__estop,
+  .nx-statusbar__row > .nx-statusbar__action {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .nx-statusbar__field--optional {
+    display: none;
+  }
+}

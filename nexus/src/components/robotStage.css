@@ -1,0 +1,201 @@
+/*
+ * The robot stage.
+ *
+ * The callouts are positioned as percentages of the figure's coordinate box,
+ * so whether they can be pinned beside the robot depends on how wide THAT box
+ * is — not on how wide the window is. A container query asks the box directly,
+ * which is why the layout stays right no matter how the sidebar and rail are
+ * sized.
+ *
+ * Default arrangement is the stacked one. Pinning is the enhancement, applied
+ * only when both conditions hold:
+ *
+ *   - the stage is at least 800px wide, so a card fits in the outer 30% of the
+ *     frame on each side;
+ *   - the window is at least 700px tall, because the frame's height is capped
+ *     by the viewport and three cards need vertical room to clear each other.
+ *
+ * A browser without container-query support simply keeps the stacked layout,
+ * which is a working arrangement rather than a broken one.
+ */
+
+.nx-stage {
+  grid-area: stage;
+  display: flex;
+  min-width: 0;
+  /* `.nx-main` owns the scrollbar; the stage never grows one of its own. */
+  overflow: visible;
+}
+
+.nx-stage__measure {
+  container: stage / inline-size;
+  width: 100%;
+  min-width: 0;
+}
+
+.nx-stage__frame {
+  position: relative;
+  margin: auto;
+  width: 100%;
+}
+
+.nx-stage__figure-box {
+  position: relative;
+  width: 100%;
+  height: clamp(200px, 30vh, 340px);
+}
+
+/* A soft pool of shade under the robot: it lifts the pale schematic off the
+ * bright sky in the photograph without putting a panel behind it. It belongs
+ * to the figure, not the frame, so it never tints the stacked callouts. */
+.nx-stage__figure-box::before {
+  content: '';
+  position: absolute;
+  inset: 2% 12% 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgba(8, 13, 16, 0.62),
+    rgba(8, 13, 16, 0.28) 62%,
+    rgba(8, 13, 16, 0) 100%
+  );
+  pointer-events: none;
+}
+
+.nx-stage__callouts {
+  display: grid;
+  /* Columns appear as the width allows, instead of at a guessed breakpoint. */
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--nx-gap);
+  margin-top: var(--nx-gap);
+}
+
+.nx-stage__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-gap-sm);
+  min-width: 0;
+}
+
+.nx-stage__group-label {
+  margin: 0;
+}
+
+/* ---- Pinned arrangement ------------------------------------------------ */
+
+@container stage (min-width: 800px) {
+  @media (min-height: 720px) {
+    .nx-stage__frame {
+      /*
+       * The aspect ratio is never broken, because the pinned callouts are
+       * percentages of this exact box. To keep the robot roughly one viewport
+       * tall we constrain the WIDTH by the available height instead of capping
+       * the height, which would distort the ratio and drift every callout off
+       * its leader line.
+       */
+      max-width: min(1180px, calc((100vh - 220px) * 1.5625));
+      aspect-ratio: 1000 / 640;
+    }
+
+    .nx-stage__figure-box {
+      position: absolute;
+      inset: 0;
+      height: auto;
+    }
+
+    .nx-stage__figure-box::before {
+      inset: 4% 16% 2%;
+    }
+
+    .nx-stage__callouts {
+      position: absolute;
+      inset: 0;
+      display: block;
+      margin-top: 0;
+      pointer-events: none;
+    }
+
+    .nx-stage__callouts .nx-callout {
+      pointer-events: auto;
+    }
+
+    .nx-stage__group {
+      display: contents;
+    }
+
+    .nx-stage__group-label {
+      position: absolute;
+      top: 2%;
+      font-size: var(--nx-size-caption);
+      color: var(--nx-text-4);
+    }
+
+    /* Front view: the robot's left leg is on the viewer's right. */
+    .nx-stage__group-label[data-side='left'] {
+      left: 70%;
+    }
+
+    .nx-stage__group-label[data-side='right'] {
+      left: 30%;
+      transform: translateX(-100%);
+    }
+  }
+}
+
+.nx-stage__sentinel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+/*
+ * Sticky only once the rail is genuinely beside the robot. In the stacked
+ * arrangement the stage includes the callouts, and pinning that whole block
+ * would cover the panels the reader scrolled down to reach.
+ */
+@container overview (min-width: 1080px) {
+  .nx-stage {
+    position: sticky;
+    top: 0;
+    align-self: start;
+  }
+
+  /*
+   * Once the reader has scrolled down to the detail panels, the robot is a
+   * positional reference, not the thing being read. It shrinks toward the top
+   * and its labels go away, so the panels are the only thing competing for
+   * attention. The numbers are all in the rail anyway.
+   *
+   * A transform is used rather than a width change so the callouts, which are
+   * percentages of this box, keep their exact geometry.
+   */
+  .nx-stage__frame,
+  .nx-stage__callouts,
+  .nx-stage .nx-figure__leaders {
+    transition:
+      transform 280ms ease,
+      opacity 220ms ease;
+  }
+
+  .nx-stage[data-condensed] .nx-stage__frame {
+    transform: scale(0.66);
+    transform-origin: top center;
+  }
+
+  .nx-stage[data-condensed] .nx-stage__callouts,
+  .nx-stage[data-condensed] .nx-figure__leaders {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nx-stage__frame,
+  .nx-stage__callouts,
+  .nx-stage .nx-figure__leaders {
+    transition: none;
+  }
+}

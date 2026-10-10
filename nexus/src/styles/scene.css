@@ -1,0 +1,76 @@
+/*
+ * The world behind the interface.
+ *
+ * A supplied photograph — dusk, a city among plants, quiet water — sits
+ * behind everything. It is the reason the glass system exists: panels are
+ * translucent so the place shows through them.
+ *
+ * The scrim above it is deliberately light. Earlier versions darkened the
+ * scene almost to black "to keep it subordinate", which made every glass
+ * panel read as a flat dark card and threw the art direction away. Contrast
+ * is bought by the panels' own fill and blur, not by hiding the world.
+ */
+
+.nx-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--nx-bg);
+}
+
+.nx-scene__photo {
+  position: absolute;
+  inset: 0;
+  background-position: center 42%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  /* A touch of lift so the violet hour reads at this scale. */
+  filter: saturate(106%) contrast(102%);
+}
+
+/*
+ * Vertical scrim: heavier where chrome lives (the status bar at the top, the
+ * bottom edge), lighter across the middle where the city and water are.
+ */
+.nx-scene__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(8, 13, 16, 0.74) 0%,
+    rgba(8, 13, 16, 0.44) 22%,
+    rgba(8, 13, 16, 0.36) 52%,
+    rgba(8, 13, 16, 0.52) 78%,
+    rgba(8, 13, 16, 0.7) 100%
+  );
+}
+
+/* Horizontal scrim: settles the sidebar and the detail rail into the frame. */
+.nx-scene__edges {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(8, 13, 16, 0.66) 0%,
+      rgba(8, 13, 16, 0) 24%,
+      rgba(8, 13, 16, 0) 74%,
+      rgba(8, 13, 16, 0.62) 100%
+    ),
+    /* A violet bloom tying the UI's brand hue to the sky it sits under. */
+      radial-gradient(
+        90vw 52vh at 50% 0%,
+        rgba(181, 140, 255, 0.1),
+        rgba(181, 140, 255, 0) 70%
+      );
+}
+
+/* Fine grain keeps the large soft gradients from banding on a wide display. */
+.nx-scene__grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+}

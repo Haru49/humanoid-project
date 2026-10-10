@@ -1,0 +1,47 @@
+.nx-row {
+  display: grid;
+  /* The label column gives way before the value does. */
+  grid-template-columns: minmax(72px, 116px) minmax(0, 1fr);
+  align-items: baseline;
+  gap: clamp(8px, 0.8vw, 14px);
+  padding: 9px 0;
+  border-bottom: 1px solid var(--nx-hairline);
+}
+
+.nx-row:last-child {
+  border-bottom: none;
+}
+
+.nx-row__label {
+  font-size: var(--nx-size-caption);
+}
+
+.nx-row__value {
+  font-size: var(--nx-size-telemetry);
+  color: var(--nx-text-1);
+  overflow-wrap: anywhere;
+}
+
+.nx-row__value[data-emphasis] {
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--nx-primary);
+  letter-spacing: -0.01em;
+}
+
+.nx-row__value[data-tone='ok'] {
+  color: var(--nx-nature);
+}
+
+/* A value nothing measured is grey and dashed, never a number. */
+.nx-row[data-missing] .nx-row__value {
+  color: var(--nx-text-4);
+}
+
+.nx-row__reason {
+  grid-column: 2;
+  margin-top: 2px;
+  font-size: var(--nx-size-metadata);
+  line-height: 1.5;
+  color: var(--nx-text-3);
+}

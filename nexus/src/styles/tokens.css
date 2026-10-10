@@ -1,0 +1,140 @@
+/*
+ * NEXUS design tokens.
+ *
+ * Transcribed from the art direction in .claude/nexus-reference/
+ * (boards 02 COLOR SYSTEM and 03 TYPOGRAPHY, plus NEXUS_UI_DIRECTION.md).
+ * Components must not hard-code colours, blur radii, or glass recipes.
+ *
+ * Colour carries meaning here, and the meanings are not interchangeable:
+ *
+ *   purple  selection, focus, interaction, graphed data
+ *   green   the real robot is healthy — online, answering, actual values
+ *   amber   caution: act carefully, or this is not live hardware
+ *   red     danger: a fault, an unsafe condition, an emergency instruction
+ *   blue    neutral information
+ *
+ * The board's usage ratio is roughly 70 / 20 / 7 / 3 (purple / green / amber /
+ * red). Red staying rare is what makes it readable when it appears.
+ */
+
+:root {
+  /* ---- Core palette ---------------------------------------------------- */
+  --nx-primary: #b58cff; /* NEXUS purple: active, selected, focus, data */
+  --nx-nature: #a9d9a3; /* nature green: online, healthy, actual */
+  --nx-bg: #080d10; /* deep space: app background */
+  --nx-surface: #1a1d24; /* card / panel / sidebar / input */
+  --nx-border: rgba(255, 255, 255, 0.16); /* subtle line, glass edge */
+
+  /* ---- Semantic -------------------------------------------------------- */
+  --nx-info: #7cc7ff;
+  --nx-warning: #ffd166;
+  --nx-critical: #ff666b;
+  --nx-success: var(--nx-nature);
+
+  /* Tinted fills and edges, so a state can colour a surface without
+   * flooding it. */
+  --nx-primary-soft: rgba(181, 140, 255, 0.16);
+  --nx-primary-line: rgba(181, 140, 255, 0.48);
+  --nx-primary-glow: rgba(181, 140, 255, 0.34);
+
+  --nx-nature-soft: rgba(169, 217, 163, 0.14);
+  --nx-nature-line: rgba(169, 217, 163, 0.46);
+
+  --nx-warning-soft: rgba(255, 209, 102, 0.14);
+  --nx-warning-line: rgba(255, 209, 102, 0.46);
+
+  --nx-critical-soft: rgba(255, 102, 107, 0.15);
+  --nx-critical-line: rgba(255, 102, 107, 0.52);
+
+  --nx-info-soft: rgba(124, 199, 255, 0.14);
+  --nx-info-line: rgba(124, 199, 255, 0.44);
+
+  /* ---- Text ------------------------------------------------------------ */
+  --nx-text-1: #ffffff; /* main text */
+  --nx-text-2: #f2f1f5; /* headings, important info */
+  --nx-text-3: #9ea0a8; /* labels, metadata */
+  --nx-text-4: rgba(158, 160, 168, 0.62); /* disabled, missing values */
+
+  /* ---- Glass: four levels, subtle to solid ----------------------------- *
+   * Tuned so the photograph participates instead of being sealed behind the
+   * panels (design review 2026-09-19):
+   *
+   *   01 secondary callouts
+   *   02 primary information cards
+   *   03 safety and control panels — dense operator text, so it is denser
+   *   04 app chrome (sidebar, status bar) — readability wins outright here
+   *
+   * The 2026-09-19 review asked for lighter panels so the photograph could
+   * participate; looking at the result on the real display, that first pass
+   * went one step too far and text got hard to read. These values sit a
+   * little above it. Readability is the tie-breaker, always.
+   *
+   * Rule: never stack one glass level directly on another. A glass panel sits
+   * on the photograph; its children are flat surfaces (.nx-well).
+   */
+  --nx-glass-1-bg: rgba(20, 22, 28, 0.24);
+  --nx-glass-1-blur: 16px;
+
+  --nx-glass-2-bg: rgba(20, 22, 28, 0.34);
+  --nx-glass-2-blur: 21px;
+
+  --nx-glass-3-bg: rgba(20, 22, 28, 0.52);
+  --nx-glass-3-blur: 25px;
+
+  --nx-glass-4-bg: rgba(16, 18, 23, 0.76);
+  --nx-glass-4-blur: 30px;
+
+  --nx-glass-saturate: 120%;
+  --nx-glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --nx-glass-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.9);
+
+  /* Flat inner surface used inside glass panels — no second blur layer. */
+  --nx-well: rgba(10, 12, 16, 0.42);
+  --nx-hairline: rgba(255, 255, 255, 0.09);
+
+  /* ---- Type ------------------------------------------------------------ *
+   * Inter for UI, JetBrains Mono for every number, ID, time and log line.
+   * Scale from board 03: display 48/64, heading 24/32, body 16,
+   * telemetry 14, metadata 12, caption 10.
+   */
+  --nx-font-ui: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont,
+    'Hiragino Sans', 'Noto Sans JP', system-ui, sans-serif;
+  --nx-font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace,
+    'SF Mono', Menlo, monospace;
+
+  /*
+   * The scale is fluid rather than fixed, so the interface grows and shrinks
+   * with the window instead of snapping at breakpoints. Each clamp keeps the
+   * board's value as the upper bound and never drops below a legible floor —
+   * telemetry has to stay readable at 1280 as well as at 2560.
+   */
+  --nx-size-display: clamp(30px, 3vw, 48px);
+  --nx-line-display: 1.3;
+  --nx-size-heading: clamp(19px, 1.5vw, 26px);
+  --nx-line-heading: 1.35;
+  --nx-size-body: clamp(14px, 0.85vw, 16px);
+  --nx-size-telemetry: clamp(13px, 0.78vw, 15px);
+  --nx-size-metadata: clamp(11px, 0.68vw, 13px);
+  --nx-size-caption: clamp(9px, 0.55vw, 11px);
+
+  --nx-tracking-label: 0.14em;
+  --nx-tracking-wordmark: 0.34em;
+
+  /* ---- Geometry -------------------------------------------------------- */
+  --nx-radius-sm: 8px;
+  --nx-radius: 14px; /* the board's glass card radius */
+  --nx-radius-lg: 18px;
+  --nx-radius-pill: 999px;
+
+  /* Chrome widths scale too, so a 1280 laptop does not lose the whole stage
+   * to a sidebar sized for a 27-inch display. */
+  --nx-sidebar-w: clamp(188px, 14.5vw, 244px);
+  --nx-rail-w: clamp(296px, 23vw, 396px);
+
+  /* A more generous, editorial rhythm than a dense widget grid. */
+  --nx-gap-xs: clamp(6px, 0.5vw, 9px);
+  --nx-gap-sm: clamp(9px, 0.75vw, 13px);
+  --nx-gap: clamp(14px, 1.15vw, 22px);
+  --nx-gap-lg: clamp(20px, 1.6vw, 30px);
+  --nx-gap-xl: clamp(28px, 2.4vw, 44px);
+}

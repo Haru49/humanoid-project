@@ -1,0 +1,59 @@
+.nx-imu-card {
+  border-radius: var(--nx-radius-lg);
+}
+
+.nx-imu-card .nx-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nx-imu-card__axes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--nx-gap-sm);
+}
+
+.nx-imu-card__axis {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.nx-imu-card__value {
+  font-size: clamp(18px, 1.5vw, 24px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--nx-primary);
+  white-space: nowrap;
+}
+
+.nx-imu-card__value[data-missing] {
+  color: var(--nx-text-4);
+}
+
+.nx-imu-card__frame {
+  padding-top: 11px;
+  border-top: 1px solid var(--nx-hairline);
+  font-size: var(--nx-size-caption);
+  letter-spacing: 0.08em;
+  color: var(--nx-text-4);
+}
+
+/* If the firmware ever reports a frame other than `robot`, the numbers above
+ * may not be mount-corrected. That has to be visible, not buried. */
+.nx-imu-card__frame[data-unexpected] {
+  color: var(--nx-critical);
+}
+
+.nx-imu-card__empty {
+  font-size: var(--nx-size-metadata);
+  line-height: 1.6;
+  color: var(--nx-text-3);
+}
+
+.nx-imu-card__empty--fault {
+  color: var(--nx-critical);
+}

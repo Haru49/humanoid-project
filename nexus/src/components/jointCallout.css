@@ -1,0 +1,248 @@
+.nx-callout {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  /* Fills its column when stacked; sized against the stage when pinned. */
+  width: 100%;
+  padding: clamp(10px, 0.75vw, 14px) clamp(12px, 0.9vw, 16px);
+  text-align: left;
+  border-radius: var(--nx-radius);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.nx-callout:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+/* Selection: a purple edge and a restrained glow. No flood fill. */
+.nx-callout[data-selected] {
+  border-color: var(--nx-primary-line);
+  box-shadow:
+    var(--nx-glass-highlight),
+    0 0 0 1px var(--nx-primary-soft),
+    0 18px 44px -26px var(--nx-primary-glow),
+    var(--nx-glass-shadow);
+}
+
+/* A silent servo is a fault, and it looks like one whether or not it is the
+ * selected joint. */
+.nx-callout[data-offline] {
+  border-color: var(--nx-critical-line);
+  background: linear-gradient(
+      0deg,
+      var(--nx-critical-soft),
+      var(--nx-critical-soft)
+    ),
+    var(--nx-glass-1-bg);
+}
+
+/* Never asked is not the same as no answer: the card simply recedes. */
+.nx-callout[data-unsampled] {
+  opacity: 0.62;
+}
+
+.nx-callout__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.nx-callout__name {
+  font-size: var(--nx-size-caption);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--nx-text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nx-callout__id {
+  font-size: var(--nx-size-caption);
+  color: var(--nx-text-4);
+  padding: 2px 6px;
+  border-radius: var(--nx-radius-pill);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.nx-callout[data-selected] .nx-callout__name {
+  color: var(--nx-text-2);
+}
+
+.nx-callout[data-selected] .nx-callout__id {
+  color: var(--nx-primary);
+  background: var(--nx-primary-soft);
+}
+
+/* The primary reading, sized like the board's numeric example. */
+.nx-callout__reading {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.nx-callout__raw {
+  font-size: clamp(21px, 1.75vw, 30px);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--nx-primary);
+}
+
+.nx-callout__raw[data-missing] {
+  color: var(--nx-text-4);
+}
+
+.nx-callout__unit {
+  font-size: var(--nx-size-caption);
+  color: var(--nx-text-4);
+}
+
+.nx-callout__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.nx-callout__secondary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--nx-size-metadata);
+  color: var(--nx-text-2);
+  white-space: nowrap;
+}
+
+.nx-callout__secondary [data-missing] {
+  color: var(--nx-text-4);
+}
+
+.nx-callout__dot-sep {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--nx-text-4);
+}
+
+.nx-callout__chip {
+  padding: 3px 9px 3px 7px;
+}
+
+/* ---- Pinned to the figure ---------------------------------------------- *
+ * Conditions must match robotStage.css exactly, or the cards detach from
+ * their leader lines. */
+
+@container stage (min-width: 800px) {
+  @media (min-height: 720px) {
+    /*
+     * Pinned callouts are LABELS, not cards — this is what reference board 08
+     * actually shows. Six glass panels floating over the robot, on top of the
+     * three in the rail, turned the photograph into nine layers of
+     * translucency and made everything harder to read. Only the selected
+     * joint gets a surface.
+     *
+     * Without a panel behind it, the text carries its own legibility: a tight
+     * shadow keeps it readable over the bright parts of the sky.
+     */
+    .nx-callout {
+      position: absolute;
+      left: var(--nx-callout-x);
+      top: var(--nx-callout-y);
+      /* Sized against the stage, so labels grow with the robot rather than
+       * staying fixed islands on a large display. `cqi` is 1% of the
+       * container's inline size. */
+      width: clamp(168px, 21cqi, 208px);
+      gap: 4px;
+      padding: 8px 10px;
+      background: transparent;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      border-color: transparent;
+      box-shadow: none;
+      text-shadow:
+        0 1px 5px rgba(8, 13, 16, 0.95),
+        0 0 16px rgba(8, 13, 16, 0.75);
+    }
+
+    /* The glass sheen belongs to panels, not to labels. */
+    .nx-callout::after {
+      display: none;
+    }
+
+    .nx-callout:hover {
+      border-color: var(--nx-hairline);
+      background: rgba(20, 22, 28, 0.36);
+    }
+
+    /* The selected joint is the one thing here that gets a surface. */
+    .nx-callout[data-selected] {
+      background: rgba(20, 22, 28, 0.5);
+      border-color: var(--nx-primary-line);
+      box-shadow: 0 14px 40px -26px var(--nx-primary-glow);
+      text-shadow: none;
+    }
+
+    /* A silent servo also gets one, because it must never be quiet. */
+    .nx-callout[data-offline] {
+      background: rgba(48, 16, 20, 0.5);
+      border-color: var(--nx-critical-line);
+      text-shadow: none;
+    }
+
+    .nx-callout__id {
+      background: transparent;
+      padding: 0;
+    }
+
+    .nx-callout[data-selected] .nx-callout__id,
+    .nx-callout[data-offline] .nx-callout__id {
+      padding: 2px 6px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Without a panel behind it the name needs a little more weight. */
+    .nx-callout__name {
+      color: var(--nx-text-2);
+    }
+
+    /* The status chip loses its pill too — six little boxes is exactly the
+     * clutter this change exists to remove. The dot still carries the state. */
+    .nx-callout__chip {
+      padding: 0;
+      border-color: transparent;
+      background: transparent;
+    }
+
+    .nx-callout[data-selected] .nx-callout__chip,
+    .nx-callout[data-offline] .nx-callout__chip {
+      padding: 3px 9px 3px 7px;
+      border-color: currentColor;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    /* The card's inner edge lands exactly on the leader-line anchor. */
+    .nx-callout[data-side='right'] {
+      transform: translate(-100%, -50%);
+    }
+
+    .nx-callout[data-side='left'] {
+      transform: translate(0, -50%);
+    }
+
+    .nx-callout[data-side='right']:hover,
+    .nx-callout[data-side='right'][data-selected] {
+      transform: translate(calc(-100% - 3px), -50%);
+    }
+
+    .nx-callout[data-side='left']:hover,
+    .nx-callout[data-side='left'][data-selected] {
+      transform: translate(3px, -50%);
+    }
+  }
+}

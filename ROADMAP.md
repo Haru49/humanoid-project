@@ -1,5 +1,13 @@
 # Biped Robot Development Roadmap
 
+> **Historical planning snapshot.** The stage labels and “Immediate Plan”
+> below predate the current six-axis supported-motion work and must not be
+> treated as current implementation status. Current motion and NEXUS sources
+> are indexed in [`docs/INFORMATION_INDEX.md`](docs/INFORMATION_INDEX.md).
+> The v33 alternating walk is implemented and upload-verified, but its
+> continuous physical result has not yet been reported. This roadmap is kept
+> for its long-term learning sequence, not as an active task list.
+
 ## Direction
 
 The project will progress through four tracks in parallel:
@@ -8,6 +16,13 @@ The project will progress through four tracks in parallel:
 2. Mechanical design in Fusion
 3. Control and mathematics
 4. Physical experiments and review
+
+ROBOTIS OP3 is the reference architecture for the eventual miniature
+humanoid. Its 20-axis arrangement provides the initial full-body map: six axes
+per leg, three per arm, and two in the head. This is a design reference, not a
+decision to copy its exact size, controller, frames, power system, or XM430
+actuators. See
+[ADR 0005](docs/decisions/0005-use-robotis-op3-as-reference-platform.md).
 
 The camera is useful for learning the XIAO ESP32-S3 Sense, but it is not on the
 critical path to walking. Complete a small camera experiment, then prioritize
@@ -22,7 +37,9 @@ connections.
 
 ### Tasks
 
-- Record the exact servo model and quantity.
+- Historical planning snapshot: it recorded three FEETECH SCS0009 servos on
+  hand. Haruta now confirms six are installed on the robot; purchase evidence
+  currently documents three units.
 - Record each servo's voltage, stall current, dimensions, spline, and range.
 - Identify every connector and power terminal on the Servo Driver Board.
 - Decide on a current-limited external servo power supply.
@@ -128,10 +145,15 @@ Build one leg and test its motion while the body is supported.
 
 ### Initial Scope
 
-- Start with the minimum useful degrees of freedom.
+- Start with three parallel pitch axes: hip pitch, knee pitch, and ankle
+  pitch.
 - Use a stand so the leg cannot cause the robot to fall.
 - Command slow, predefined poses before trajectories.
 - Record joint angles and observed foot position.
+
+The OP3-style six-axis leg remains the later target. Hip yaw, hip roll, and
+ankle roll are added only after the supported three-axis chain and final
+actuator requirements are understood.
 
 ### Learning Topics
 
@@ -234,9 +256,13 @@ Work on these three small goals in parallel:
 ### Track B: Servo Preparation
 
 - Defer servo firmware work until camera streaming is complete.
-- Identify the exact servo model.
-- Obtain its datasheet.
-- Determine voltage and stall current.
+- Use FEETECH SCS0009 as the current evaluation servo. Haruta confirms six
+  are installed on the robot; see `docs/HARDWARE_INVENTORY.md` for the
+  difference from the available purchase records.
+- Preserve the official SCS0009 datasheet and verify the physical units against
+  it.
+- Treat 6 V, 0.7 kgf·cm rated torque, 2.3 kgf·cm stall torque, and 1.0 A stall
+  current as specification values to be checked in a controlled test.
 - Document the Servo Driver Board terminals before powering it.
 - Add a root PlatformIO `servo` environment for `servo-driver-test` after the
   hardware and power requirements are understood.
@@ -249,11 +275,11 @@ Work on these three small goals in parallel:
 
 ## Decisions Not Yet Made
 
-- Exact servo model and quantity
-- Number of degrees of freedom per leg
+- Final leg actuator model and whether SCS0009 has sufficient torque
 - Target robot height and mass
-- External power supply
-- Whether an IMU must be added
+- Final actuator voltage, battery, regulation, protection, and power
+  distribution
+- How the available BNO085 will be mounted and integrated
 - First structural material and fabrication method
 
 These decisions should be made from measurements and experiments rather than

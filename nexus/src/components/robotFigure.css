@@ -1,0 +1,235 @@
+.nx-figure {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* ---- Structure -------------------------------------------------------- */
+
+.nx-figure__link {
+  stroke: url(#nx-link);
+  stroke-width: 16;
+  stroke-linecap: round;
+}
+
+.nx-figure__rod {
+  stroke: rgba(255, 255, 255, 0.24);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+}
+
+.nx-figure__chassis-edge {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.24);
+  stroke-width: 1;
+}
+
+.nx-figure__centerline {
+  stroke: rgba(255, 255, 255, 0.18);
+  stroke-width: 1;
+  stroke-dasharray: 3 5;
+}
+
+.nx-figure__yaw-plane {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.2);
+  stroke-width: 1;
+  stroke-dasharray: 4 6;
+}
+
+.nx-figure__ground {
+  stroke: rgba(255, 255, 255, 0.14);
+  stroke-width: 1;
+  stroke-dasharray: 2 8;
+}
+
+.nx-figure__sole {
+  stroke: rgba(255, 255, 255, 0.16);
+  stroke-width: 1;
+}
+
+.nx-figure__caption,
+.nx-figure__footnote {
+  fill: var(--nx-text-4);
+  font-family: var(--nx-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-anchor: middle;
+}
+
+.nx-figure__footnote {
+  letter-spacing: 0.06em;
+}
+
+/* ---- Leader lines ----------------------------------------------------- */
+
+.nx-figure__leaders path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.2);
+  stroke-width: 1;
+  transition: stroke 180ms ease;
+}
+
+.nx-figure__leaders path[data-selected] {
+  stroke: var(--nx-primary-line);
+}
+
+/* ---- Joint markers ---------------------------------------------------- */
+
+.nx-figure__node {
+  cursor: pointer;
+}
+
+.nx-figure__node:focus {
+  outline: none;
+}
+
+.nx-figure__node-ring {
+  fill: rgba(10, 13, 18, 0.78);
+  stroke: rgba(255, 255, 255, 0.36);
+  stroke-width: 1.5;
+  transition: stroke 180ms ease, stroke-width 180ms ease;
+}
+
+.nx-figure__node-core {
+  fill: rgba(255, 255, 255, 0.55);
+  transition: fill 180ms ease;
+}
+
+.nx-figure__node:hover .nx-figure__node-ring {
+  stroke: rgba(255, 255, 255, 0.6);
+}
+
+/* Selection is purple, here and nowhere else in the figure. */
+.nx-figure__node[data-selected] .nx-figure__node-ring {
+  stroke: var(--nx-primary);
+  stroke-width: 2;
+}
+
+.nx-figure__node[data-selected] .nx-figure__node-core {
+  fill: var(--nx-primary);
+}
+
+/* A slow breathing halo, only around the selected joint. This is the one
+ * continuous animation in the interface, and it is deliberately faint. */
+.nx-figure__node-glow {
+  fill: var(--nx-primary-glow);
+  animation: nx-breathe 4.2s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes nx-breathe {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.06);
+  }
+}
+
+/* One short green ripple when all six servos answer. Plays once. */
+.nx-figure__scan {
+  fill: none;
+  stroke: var(--nx-nature);
+  stroke-width: 1.5;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: nx-scan 900ms ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes nx-scan {
+  from {
+    opacity: 0.7;
+    transform: scale(0.3);
+  }
+  to {
+    opacity: 0;
+    transform: scale(5.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nx-figure__node-glow {
+    animation: none;
+    opacity: 0.7;
+  }
+
+  .nx-figure__scan {
+    display: none;
+  }
+}
+
+.nx-figure__node:focus-visible .nx-figure__node-ring {
+  stroke: var(--nx-primary);
+  stroke-dasharray: 3 3;
+}
+
+/* A silent servo is red on the robot itself, and red outranks selection. */
+.nx-figure__node[data-offline] .nx-figure__node-ring {
+  stroke: var(--nx-critical);
+  stroke-width: 2;
+}
+
+.nx-figure__node[data-offline] .nx-figure__node-core {
+  fill: var(--nx-critical);
+}
+
+.nx-figure__node[data-offline] .nx-figure__node-id {
+  fill: var(--nx-critical);
+}
+
+/* Green means online, and only online. Red means a servo was asked and did
+ * not answer. Grey means nothing has asked it yet — the state a BNO085-only
+ * session is in, which is not a fault. */
+.nx-figure__node-online {
+  fill: var(--nx-critical);
+}
+
+.nx-figure__node-online[data-online] {
+  fill: var(--nx-nature);
+}
+
+.nx-figure__node-online[data-unsampled] {
+  fill: rgba(255, 255, 255, 0.22);
+}
+
+.nx-figure__node[data-unsampled] .nx-figure__node-id {
+  fill: var(--nx-text-4);
+}
+
+.nx-figure__node-id {
+  fill: var(--nx-text-3);
+  font-family: var(--nx-font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-anchor: middle;
+  transition: fill 180ms ease;
+}
+
+.nx-figure__node-id[data-selected] {
+  fill: var(--nx-primary);
+}
+
+/*
+ * Leader lines only make sense where the callouts are pinned to the figure,
+ * so they are hidden by default and revealed under exactly the same condition
+ * that pins the cards (see robotStage.css).
+ */
+.nx-figure__leaders {
+  display: none;
+}
+
+@container stage (min-width: 800px) {
+  @media (min-height: 720px) {
+    .nx-figure__leaders {
+      display: block;
+    }
+  }
+}

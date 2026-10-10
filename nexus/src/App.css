@@ -1,0 +1,71 @@
+/*
+ * Application shell: sidebar, status line, and one scrolling content area.
+ *
+ * There is exactly one viewport breakpoint in the whole application, and it is
+ * here: below it the sidebar stops being a column. Everything else adapts by
+ * measuring its own container instead of guessing from the window width,
+ * because the space a panel actually gets depends on the sidebar and rail, not
+ * on the viewport.
+ */
+
+.nx-app {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    'sidebar status'
+    'sidebar content';
+  gap: var(--nx-gap);
+  padding: var(--nx-gap);
+}
+
+/*
+ * The one vertical scroll container in the application.
+ *
+ * min-height: 0 is what actually lets it scroll: without it the grid row
+ * sizes to its content and the overflow never engages.
+ */
+.nx-main {
+  grid-area: content;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* The last card never touches the viewport edge. */
+  padding-bottom: var(--nx-gap-lg);
+  /* Room for the scrollbar so content does not sit under it. */
+  padding-right: 4px;
+  animation: nx-route-enter 260ms ease both;
+}
+
+@keyframes nx-route-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nx-main {
+    animation: none;
+  }
+}
+
+/* Below this the sidebar cannot afford a column of its own. */
+@media (max-width: 1023px) {
+  .nx-app {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-areas:
+      'sidebar'
+      'status'
+      'content';
+  }
+}

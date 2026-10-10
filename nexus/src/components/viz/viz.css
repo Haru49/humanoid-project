@@ -1,0 +1,204 @@
+/*
+ * Shared data-visualisation primitives.
+ *
+ * Purple graphs data and targets, green marks actual healthy measurements.
+ * Nothing here draws a value that was not recorded.
+ */
+
+/* ---- Sparkline --------------------------------------------------------- */
+
+.nx-spark {
+  width: 100%;
+  overflow: hidden;
+}
+
+.nx-spark svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.nx-spark__line {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.nx-spark__line[data-tone='primary'] {
+  stroke: var(--nx-primary);
+}
+
+.nx-spark__line[data-tone='nature'] {
+  stroke: var(--nx-nature);
+}
+
+.nx-spark__line[data-tone='info'] {
+  stroke: var(--nx-info);
+}
+
+.nx-spark__line[data-dashed] {
+  stroke-dasharray: 4 3;
+}
+
+.nx-spark--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--nx-hairline);
+  border-radius: var(--nx-radius-sm);
+}
+
+.nx-spark__empty-note {
+  font-size: var(--nx-size-caption);
+  letter-spacing: 0.1em;
+  color: var(--nx-text-4);
+}
+
+/* ---- Range rail -------------------------------------------------------- */
+
+.nx-rail__track {
+  position: relative;
+  height: 6px;
+  border-radius: var(--nx-radius-pill);
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+/* The measured software-safe band, drawn only when one has been recorded. */
+.nx-rail__safe {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--nx-nature-soft);
+  border-left: 1px solid var(--nx-nature-line);
+  border-right: 1px solid var(--nx-nature-line);
+}
+
+.nx-rail__neutral {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  margin-left: -0.5px;
+  background: var(--nx-nature);
+}
+
+.nx-rail__marker {
+  position: absolute;
+  top: 50%;
+  width: 2px;
+  height: 16px;
+  margin-left: -1px;
+  border-radius: var(--nx-radius-pill);
+  transform: translateY(-50%);
+  background: var(--nx-primary);
+  box-shadow: 0 0 12px var(--nx-primary-glow);
+}
+
+.nx-rail__scale {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 7px;
+  font-size: var(--nx-size-caption);
+  letter-spacing: 0.08em;
+  color: var(--nx-text-4);
+}
+
+.nx-rail__note {
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+/* Amber, because an uncalibrated joint is a caution, not a fault. */
+.nx-rail__note[data-uncalibrated] {
+  color: var(--nx-warning);
+  opacity: 0.85;
+}
+
+/* ---- Thermometer ------------------------------------------------------- */
+
+.nx-thermo {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.nx-thermo__column {
+  position: relative;
+  width: 8px;
+  min-height: 62px;
+  border-radius: var(--nx-radius-pill);
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.nx-thermo__zone {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+}
+
+.nx-thermo__zone[data-tone='warning'] {
+  background: var(--nx-warning-soft);
+}
+
+.nx-thermo__zone[data-tone='critical'] {
+  background: var(--nx-critical-soft);
+}
+
+.nx-thermo__fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: var(--nx-radius-pill);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.28));
+  transition: height 240ms ease;
+}
+
+.nx-thermo__fill[data-tone='nature'] {
+  background: linear-gradient(180deg, var(--nx-nature), rgba(169, 217, 163, 0.5));
+}
+
+.nx-thermo__fill[data-tone='warning'] {
+  background: linear-gradient(180deg, var(--nx-warning), rgba(255, 209, 102, 0.5));
+}
+
+.nx-thermo__fill[data-tone='critical'] {
+  background: linear-gradient(180deg, var(--nx-critical), rgba(255, 102, 107, 0.5));
+}
+
+.nx-thermo__readout {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.nx-thermo__value {
+  font-size: clamp(17px, 1.35vw, 22px);
+  font-weight: 500;
+  line-height: 1.1;
+  color: var(--nx-text-1);
+}
+
+.nx-thermo__value[data-missing] {
+  color: var(--nx-text-4);
+}
+
+.nx-thermo__scale {
+  font-size: var(--nx-size-caption);
+  letter-spacing: 0.08em;
+  color: var(--nx-text-4);
+}
+
+.nx-thermo__note {
+  font-size: var(--nx-size-caption);
+  line-height: 1.4;
+  color: var(--nx-text-4);
+}

@@ -1,0 +1,57 @@
+/*
+ * Overview layout.
+ *
+ * Nothing here owns a scrollbar: `.nx-main` is the single scroll container.
+ * Panels grow to fit their content and the page gets taller, which is why the
+ * Events panel is no longer sliced off at the bottom of the viewport.
+ *
+ * The column switch is a CONTAINER query, not a viewport one. The width this
+ * page actually receives is the window minus the sidebar, minus padding and
+ * gaps — all of which scale — so a viewport breakpoint here would be a guess
+ * that goes wrong at exactly the sizes where it matters.
+ */
+
+.nx-overview {
+  container: overview / inline-size;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'stage'
+    'rail';
+  gap: var(--nx-gap);
+  align-items: start;
+  min-width: 0;
+}
+
+.nx-overview__rail {
+  grid-area: rail;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--nx-gap);
+  align-items: start;
+  min-width: 0;
+}
+
+/* Stacked layout: the joint detail spans the full width of the rail grid. */
+.nx-overview__rail .nx-detail {
+  grid-column: 1 / -1;
+}
+
+/*
+ * Wide enough for the rail to sit beside the robot rather than under it.
+ * The threshold is the rail's comfortable width plus a stage worth looking at.
+ */
+@container overview (min-width: 1080px) {
+  .nx-overview {
+    grid-template-columns: minmax(0, 1fr) var(--nx-rail-w);
+    grid-template-areas: 'stage rail';
+  }
+
+  .nx-overview__rail {
+    /* Back to one column, stacked vertically, once it is a side rail. */
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* A browser without container queries keeps the stacked layout above, which
+ * is the safe arrangement rather than a broken one. */

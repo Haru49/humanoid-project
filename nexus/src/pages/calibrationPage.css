@@ -1,0 +1,199 @@
+/*
+ * Calibration console.
+ *
+ * This is the one place in NEXUS that releases servo torque, so its visual
+ * language is deliberately louder than the rest of the application:
+ *
+ *   red    the emergency stop, and the action that lets a leg fall
+ *   amber  a precondition that is not met yet
+ *   green  the action that returns the machine to a held, safe state
+ *   purple selection only — which group you are working on
+ */
+
+.nx-calibration {
+  display: grid;
+  place-items: start center;
+  /* `.nx-main` owns the scrollbar. */
+}
+
+.nx-calibration__card {
+  width: min(880px, 100%);
+  padding: clamp(20px, 1.8vw, 32px) clamp(20px, 2vw, 34px);
+  border-radius: var(--nx-radius-lg);
+}
+
+.nx-calibration h1 {
+  margin: 8px 0 18px;
+  font-size: var(--nx-size-heading);
+  line-height: var(--nx-line-heading);
+  font-weight: 300;
+  color: var(--nx-text-1);
+}
+
+/* The emergency stop. It is never dimmed, collapsed, or scrolled out of the
+ * first screenful. */
+.nx-calibration__warning {
+  display: block;
+  padding: 14px 16px;
+  border: 1px solid var(--nx-critical-line);
+  border-left: 3px solid var(--nx-critical);
+  border-radius: var(--nx-radius-sm);
+  background: var(--nx-critical-soft);
+  font-size: var(--nx-size-telemetry);
+  font-weight: 500;
+  line-height: 1.65;
+  color: #ffc9cb;
+}
+
+.nx-calibration__viewpoint {
+  margin-top: 12px;
+  font-size: var(--nx-size-metadata);
+  line-height: 1.6;
+  color: var(--nx-text-3);
+}
+
+/* A precondition that is not met: caution, not danger. */
+.nx-calibration__blocked {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--nx-warning-line);
+  border-left: 3px solid var(--nx-warning);
+  border-radius: var(--nx-radius-sm);
+  background: var(--nx-warning-soft);
+  font-size: var(--nx-size-metadata);
+  line-height: 1.6;
+  color: #ffe6ad;
+}
+
+.nx-calibration .nx-mono {
+  display: block;
+  margin-top: 16px;
+  font-size: var(--nx-size-metadata);
+  letter-spacing: 0.04em;
+  color: var(--nx-text-3);
+}
+
+.nx-calibration__groups,
+.nx-calibration__controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.nx-calibration__groups {
+  padding-top: 16px;
+  border-top: 1px solid var(--nx-hairline);
+}
+
+.nx-calibration button {
+  padding: 10px 16px;
+  border-radius: var(--nx-radius-sm);
+  border: 1px solid var(--nx-border);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--nx-text-1);
+  font-size: var(--nx-size-metadata);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.nx-calibration button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.nx-calibration button:disabled {
+  opacity: 0.32;
+}
+
+/* Releasing torque can drop a leg. It looks like what it is. */
+.nx-calibration__release {
+  border-color: var(--nx-critical-line);
+  background: var(--nx-critical-soft);
+  color: var(--nx-critical);
+  font-weight: 600;
+}
+
+.nx-calibration__release:hover:not(:disabled) {
+  background: rgba(255, 102, 107, 0.24);
+}
+
+/* Returning to a held, safe state is the green action. */
+.nx-calibration__hold {
+  border-color: var(--nx-nature-line);
+  background: var(--nx-nature-soft);
+  color: var(--nx-nature);
+  font-weight: 600;
+}
+
+.nx-calibration__hold:hover:not(:disabled) {
+  background: rgba(169, 217, 163, 0.22);
+}
+
+.nx-calibration__confirm {
+  margin-top: 20px;
+  padding: 18px 20px;
+  border: 1px solid var(--nx-critical-line);
+  border-radius: var(--nx-radius-sm);
+  background: rgba(255, 102, 107, 0.12);
+}
+
+.nx-calibration__confirm p {
+  margin-bottom: 14px;
+  font-size: var(--nx-size-telemetry);
+  line-height: 1.6;
+  color: #ffc9cb;
+}
+
+.nx-calibration__confirm button:first-of-type {
+  margin-right: 10px;
+  border-color: var(--nx-critical-line);
+  background: var(--nx-critical-soft);
+  color: var(--nx-critical);
+  font-weight: 600;
+}
+
+.nx-calibration__marks {
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 1px solid var(--nx-hairline);
+  /* Recorded raw values scroll sideways rather than being squeezed
+   * unreadable: these are the numbers the whole session exists to produce. */
+  overflow-x: auto;
+}
+
+.nx-calibration__marks table {
+  min-width: 420px;
+}
+
+.nx-calibration__marks p {
+  font-size: var(--nx-size-metadata);
+  color: var(--nx-text-3);
+}
+
+.nx-calibration__marks table {
+  width: 100%;
+  margin-top: 12px;
+  font-family: var(--nx-font-mono);
+  font-size: var(--nx-size-metadata);
+}
+
+.nx-calibration__marks th,
+.nx-calibration__marks td {
+  text-align: left;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--nx-hairline);
+}
+
+.nx-calibration__marks th {
+  font-family: var(--nx-font-ui);
+  font-size: var(--nx-size-caption);
+  font-weight: 500;
+  letter-spacing: var(--nx-tracking-label);
+  text-transform: uppercase;
+  color: var(--nx-text-3);
+}
+
+.nx-calibration__marks td {
+  color: var(--nx-text-2);
+}

@@ -1,0 +1,288 @@
+.nx-events {
+  /* The timeline reflows on its own width: this panel sits in a side rail on
+   * a wide window and full-bleed on a narrow one, and the window says nothing
+   * useful about which. */
+  container: events / inline-size;
+  border-radius: var(--nx-radius-lg);
+}
+
+/* ---- Level filters ----------------------------------------------------- */
+
+.nx-events__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px 18px 0;
+}
+
+.nx-events__filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 9px;
+  border-radius: var(--nx-radius-pill);
+  border: 1px solid var(--nx-hairline);
+  font-size: var(--nx-size-caption);
+  letter-spacing: 0.1em;
+  color: var(--nx-text-3);
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.nx-events__filter-count {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: var(--nx-radius-pill);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--nx-text-4);
+}
+
+.nx-events__filter:hover:not(:disabled) {
+  color: var(--nx-text-1);
+  border-color: var(--nx-border);
+}
+
+.nx-events__filter[data-active] {
+  color: var(--nx-text-1);
+  border-color: var(--nx-primary-line);
+  background: var(--nx-primary-soft);
+}
+
+.nx-events__filter[data-active] .nx-events__filter-count {
+  color: var(--nx-primary);
+}
+
+/* A level with entries is tinted even when it is not the active filter, so a
+ * session with errors in it reads at a glance. */
+.nx-events__filter[data-level='error']:not([data-empty]) {
+  color: var(--nx-critical);
+  border-color: var(--nx-critical-line);
+}
+
+.nx-events__filter[data-level='warn']:not([data-empty]) {
+  color: var(--nx-warning);
+  border-color: var(--nx-warning-line);
+}
+
+.nx-events__filter[data-level='ok']:not([data-empty]) {
+  color: var(--nx-nature);
+}
+
+.nx-events__filter:disabled {
+  opacity: 0.36;
+}
+
+/*
+ * The one bounded scroll in the application. A session can produce hundreds of
+ * events; the page should not grow without limit because of them.
+ */
+.nx-events .nx-panel__body {
+  max-height: 320px;
+  overflow-y: auto;
+  padding-top: 12px;
+}
+
+/* ---- Timeline ---------------------------------------------------------- */
+
+.nx-events__list {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The spine the markers hang from. */
+.nx-events__list::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: var(--nx-hairline);
+}
+
+/* Narrowest arrangement: time above, message below, nothing truncated. */
+.nx-events__item {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'time ago'
+    'message message';
+  align-items: baseline;
+  gap: 4px 10px;
+  padding: 9px 4px 9px 20px;
+}
+
+.nx-events__time {
+  grid-area: time;
+}
+
+.nx-events__channel {
+  grid-area: channel;
+  display: none;
+}
+
+.nx-events__message {
+  grid-area: message;
+}
+
+.nx-events__ago {
+  grid-area: ago;
+  justify-self: end;
+}
+
+@container events (min-width: 360px) {
+  .nx-events__item {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: 'time message ago';
+    gap: 10px;
+  }
+}
+
+@container events (min-width: 480px) {
+  .nx-events__item {
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    grid-template-areas: 'time channel message ago';
+  }
+
+  .nx-events__channel {
+    display: block;
+  }
+}
+
+.nx-events__marker {
+  position: absolute;
+  left: 0;
+  top: 15px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid var(--nx-text-4);
+  background: var(--nx-bg);
+}
+
+.nx-events__item[data-level='ok'] .nx-events__marker,
+.nx-events__empty-legend li[data-level='ok'] .nx-events__marker {
+  border-color: var(--nx-nature);
+  background: var(--nx-nature);
+}
+
+.nx-events__item[data-level='warn'] .nx-events__marker,
+.nx-events__empty-legend li[data-level='warn'] .nx-events__marker {
+  border-color: var(--nx-warning);
+  background: var(--nx-warning);
+}
+
+/* An error gets a filled marker with a ring: it reads at a glance while
+ * scrolling. */
+.nx-events__item[data-level='error'] .nx-events__marker,
+.nx-events__empty-legend li[data-level='error'] .nx-events__marker {
+  border-color: var(--nx-critical);
+  background: var(--nx-critical);
+  box-shadow: 0 0 0 3px var(--nx-critical-soft);
+}
+
+.nx-events__item[data-level='error'] {
+  border-radius: var(--nx-radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--nx-critical-soft),
+    rgba(255, 102, 107, 0) 72%
+  );
+}
+
+.nx-events__item[data-level='error'] .nx-events__message {
+  color: #ffc0c2;
+}
+
+.nx-events__time {
+  font-size: var(--nx-size-caption);
+  color: var(--nx-text-3);
+}
+
+.nx-events__channel {
+  font-size: var(--nx-size-caption);
+  letter-spacing: 0.12em;
+  color: var(--nx-text-4);
+}
+
+.nx-events__message {
+  font-size: var(--nx-size-metadata);
+  line-height: 1.55;
+  color: var(--nx-text-2);
+}
+
+.nx-events__ago {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--nx-text-4);
+  white-space: nowrap;
+}
+
+/* ---- Empty states ------------------------------------------------------ */
+
+.nx-events__empty {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 6px 0 4px;
+}
+
+.nx-events__empty-title {
+  font-size: var(--nx-size-caption);
+  letter-spacing: 0.14em;
+  color: var(--nx-text-3);
+}
+
+.nx-events__empty-note {
+  font-size: var(--nx-size-metadata);
+  line-height: 1.65;
+  color: var(--nx-text-3);
+}
+
+.nx-events__empty-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--nx-hairline);
+}
+
+.nx-events__empty-legend li {
+  position: relative;
+  padding-left: 20px;
+  font-size: var(--nx-size-metadata);
+  color: var(--nx-text-4);
+}
+
+.nx-events__empty-legend .nx-events__marker {
+  top: 5px;
+}
+
+.nx-events__empty-filter {
+  font-size: var(--nx-size-caption);
+  letter-spacing: 0.1em;
+  color: var(--nx-text-4);
+}
+
+/* ---- Footer ------------------------------------------------------------ */
+
+.nx-events__foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 18px 13px;
+  border-top: 1px solid var(--nx-hairline);
+  font-size: var(--nx-size-caption);
+  letter-spacing: 0.1em;
+  color: var(--nx-text-4);
+}
+
+.nx-events__foot-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--nx-text-4);
+}
+

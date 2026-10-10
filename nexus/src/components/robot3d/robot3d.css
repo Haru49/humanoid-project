@@ -1,0 +1,37 @@
+.nx-robot3d {
+  position: absolute;
+  inset: 0;
+}
+
+.nx-robot3d__host {
+  width: 100%;
+  height: 100%;
+}
+
+.nx-robot3d__host canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.nx-robot3d__loading,
+.nx-robot3d__note {
+  position: absolute;
+  left: 50%;
+  bottom: 8%;
+  transform: translateX(-50%);
+  font-size: var(--nx-size-caption);
+  letter-spacing: 0.14em;
+  color: var(--nx-text-4);
+  white-space: nowrap;
+}
+
+/* A failed model is a caution, not a fault: the schematic still shows every
+ * measured value. */
+.nx-robot3d__note {
+  color: var(--nx-warning);
+  padding: 5px 11px;
+  border: 1px solid var(--nx-warning-line);
+  border-radius: var(--nx-radius-pill);
+  background: var(--nx-warning-soft);
+}

@@ -1,0 +1,236 @@
+.nx-imu {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--nx-gap);
+  align-items: start;
+}
+
+.nx-imu__panel {
+  border-radius: var(--nx-radius-lg);
+}
+
+.nx-imu__panel .nx-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-gap);
+}
+
+/* ---- Live axes --------------------------------------------------------- */
+
+.nx-imu__axes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: var(--nx-gap-sm);
+}
+
+.nx-imu__axis {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px 14px 13px;
+  min-width: 0;
+}
+
+.nx-imu__value {
+  font-size: clamp(24px, 2.1vw, 36px);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--nx-primary);
+  white-space: nowrap;
+}
+
+.nx-imu__value[data-missing] {
+  color: var(--nx-text-4);
+}
+
+/* ---- Horizon ----------------------------------------------------------- */
+
+.nx-imu__horizon {
+  position: relative;
+  border-radius: var(--nx-radius-sm);
+  border: 1px solid var(--nx-hairline);
+  overflow: hidden;
+  aspect-ratio: 240 / 140;
+  max-height: 200px;
+}
+
+.nx-imu__horizon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.nx-imu__horizon-sky {
+  fill: rgba(124, 199, 255, 0.1);
+}
+
+.nx-imu__horizon-ground {
+  fill: rgba(20, 22, 28, 0.55);
+}
+
+.nx-imu__horizon-line {
+  stroke: var(--nx-info);
+  stroke-width: 1.2;
+}
+
+.nx-imu__horizon-tick {
+  stroke: rgba(255, 255, 255, 0.28);
+  stroke-width: 1;
+}
+
+/* The fixed reference is the robot itself, so it takes the brand accent. */
+.nx-imu__horizon-craft line {
+  stroke: var(--nx-primary);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.nx-imu__horizon-craft circle {
+  fill: var(--nx-primary);
+}
+
+.nx-imu__horizon-scale {
+  position: absolute;
+  right: 9px;
+  bottom: 7px;
+  font-size: var(--nx-size-caption);
+  letter-spacing: 0.08em;
+  color: var(--nx-text-4);
+}
+
+/* ---- History ----------------------------------------------------------- */
+
+.nx-imu__legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--nx-size-caption);
+  letter-spacing: 0.08em;
+  color: var(--nx-text-4);
+}
+
+.nx-imu__legend-key {
+  width: 14px;
+  height: 2px;
+  border-radius: var(--nx-radius-pill);
+}
+
+.nx-imu__legend-key[data-tone='primary'] {
+  background: var(--nx-primary);
+}
+
+.nx-imu__legend-key[data-tone='info'] {
+  background: var(--nx-info);
+}
+
+.nx-imu__history-note {
+  font-size: var(--nx-size-caption);
+  letter-spacing: 0.08em;
+  color: var(--nx-text-4);
+}
+
+/* ---- Empty and fault states -------------------------------------------- */
+
+.nx-imu__empty {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nx-imu__empty-title {
+  font-size: var(--nx-size-caption);
+  letter-spacing: 0.14em;
+  color: var(--nx-text-3);
+}
+
+.nx-imu__empty-note,
+.nx-imu__fault {
+  font-size: var(--nx-size-metadata);
+  line-height: 1.65;
+  color: var(--nx-text-3);
+}
+
+.nx-imu__fault {
+  color: var(--nx-critical);
+}
+
+/* ---- Diagnostics ------------------------------------------------------- */
+
+.nx-imu__diagnostics {
+  grid-column: 1 / -1;
+  border-radius: var(--nx-radius-lg);
+  overflow: hidden;
+}
+
+.nx-imu__diagnostics-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nx-gap-sm);
+  flex-wrap: wrap;
+  padding: clamp(11px, 0.85vw, 16px) var(--nx-gap);
+  cursor: pointer;
+  list-style: none;
+}
+
+.nx-imu__diagnostics-summary::-webkit-details-marker {
+  display: none;
+}
+
+.nx-imu__diagnostics[open] .nx-imu__diagnostics-summary {
+  border-bottom: 1px solid var(--nx-hairline);
+}
+
+.nx-imu__diagnostics-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-gap-sm);
+  padding: var(--nx-gap);
+}
+
+/* Amber: reading these as the robot's attitude is a real mistake to make. */
+.nx-imu__diagnostics-warning {
+  padding: 11px 13px;
+  border: 1px solid var(--nx-warning-line);
+  border-left: 3px solid var(--nx-warning);
+  border-radius: var(--nx-radius-sm);
+  background: var(--nx-warning-soft);
+  font-size: var(--nx-size-metadata);
+  line-height: 1.6;
+  color: #ffe6ad;
+}
+
+.nx-imu__kv {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 2px var(--nx-gap);
+  margin: 0;
+}
+
+.nx-imu__kv-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--nx-gap-sm);
+  padding: 7px 0;
+  border-bottom: 1px solid var(--nx-hairline);
+}
+
+.nx-imu__kv-row dd {
+  margin: 0;
+  font-size: var(--nx-size-metadata);
+  color: var(--nx-text-2);
+}
+
+.nx-imu__diagnostics-note {
+  font-size: var(--nx-size-caption);
+  line-height: 1.6;
+  color: var(--nx-text-4);
+}
+
+/* ---- Control note ------------------------------------------------------ */
+
+.nx-imu__control-note {
+  grid-column: 1 / -1;
+}

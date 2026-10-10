@@ -1,0 +1,323 @@
+/*
+ * Glass system and the shared component primitives from reference board 04/05.
+ *
+ * Four levels, subtle to solid. Each level is one blur + saturation pass, a
+ * thin pale border, a single top highlight and a restrained shadow.
+ * Do not nest .nx-glass inside another .nx-glass: stacked blur layers muddy
+ * the photograph underneath and cost a lot of compositing.
+ */
+
+.nx-glass {
+  position: relative;
+  border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius);
+  box-shadow: var(--nx-glass-highlight), var(--nx-glass-shadow);
+}
+
+.nx-glass--1 {
+  background: var(--nx-glass-1-bg);
+  backdrop-filter: blur(var(--nx-glass-1-blur)) saturate(var(--nx-glass-saturate));
+  -webkit-backdrop-filter: blur(var(--nx-glass-1-blur)) saturate(var(--nx-glass-saturate));
+}
+
+.nx-glass--2 {
+  background: var(--nx-glass-2-bg);
+  backdrop-filter: blur(var(--nx-glass-2-blur)) saturate(var(--nx-glass-saturate));
+  -webkit-backdrop-filter: blur(var(--nx-glass-2-blur)) saturate(var(--nx-glass-saturate));
+}
+
+.nx-glass--3 {
+  background: var(--nx-glass-3-bg);
+  backdrop-filter: blur(var(--nx-glass-3-blur)) saturate(var(--nx-glass-saturate));
+  -webkit-backdrop-filter: blur(var(--nx-glass-3-blur)) saturate(var(--nx-glass-saturate));
+}
+
+.nx-glass--4 {
+  background: var(--nx-glass-4-bg);
+  backdrop-filter: blur(var(--nx-glass-4-blur)) saturate(var(--nx-glass-saturate));
+  -webkit-backdrop-filter: blur(var(--nx-glass-4-blur)) saturate(var(--nx-glass-saturate));
+}
+
+/* Environmental colour bleed: the scene behind a panel lights its top edge,
+ * so panels feel lit by the place rather than pasted onto it. */
+.nx-glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    166deg,
+    rgba(255, 255, 255, 0.055),
+    rgba(255, 255, 255, 0) 46%
+  );
+}
+
+/* ---- Panel: a glass surface with a label strip and a body -------------- */
+
+.nx-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.nx-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nx-gap-sm);
+  padding: clamp(11px, 0.85vw, 16px) var(--nx-gap) clamp(9px, 0.7vw, 13px);
+  border-bottom: 1px solid var(--nx-hairline);
+  flex-wrap: wrap;
+}
+
+.nx-panel__title {
+  font-size: var(--nx-size-caption);
+  font-weight: 600;
+  letter-spacing: var(--nx-tracking-label);
+  text-transform: uppercase;
+  color: var(--nx-text-2);
+}
+
+.nx-panel__meta {
+  font-family: var(--nx-font-mono);
+  font-size: var(--nx-size-caption);
+  letter-spacing: 0.08em;
+  color: var(--nx-text-4);
+}
+
+.nx-panel__body {
+  flex: 1;
+  min-height: 0;
+  padding: clamp(13px, 1vw, 18px) var(--nx-gap) var(--nx-gap);
+}
+
+/* Flat inner surface. Used for wells and rows inside a glass panel so a
+ * second backdrop-filter is never introduced. */
+.nx-well {
+  background: var(--nx-well);
+  border: 1px solid var(--nx-hairline);
+  border-radius: var(--nx-radius-sm);
+}
+
+/* ---- Status chips (board 05) ------------------------------------------ *
+ * A chip states one fact. Its tone is the fact's meaning, never decoration.
+ */
+
+.nx-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 11px 5px 9px;
+  border-radius: var(--nx-radius-pill);
+  border: 1px solid var(--nx-hairline);
+  background: rgba(255, 255, 255, 0.045);
+  font-family: var(--nx-font-mono);
+  font-size: var(--nx-size-caption);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: var(--nx-text-3);
+  white-space: nowrap;
+}
+
+.nx-chip__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+.nx-chip[data-tone='primary'] {
+  color: var(--nx-primary);
+  border-color: var(--nx-primary-line);
+  background: var(--nx-primary-soft);
+}
+
+.nx-chip[data-tone='nature'] {
+  color: var(--nx-nature);
+  border-color: var(--nx-nature-line);
+  background: var(--nx-nature-soft);
+}
+
+.nx-chip[data-tone='warning'] {
+  color: var(--nx-warning);
+  border-color: var(--nx-warning-line);
+  background: var(--nx-warning-soft);
+}
+
+.nx-chip[data-tone='critical'] {
+  color: var(--nx-critical);
+  border-color: var(--nx-critical-line);
+  background: var(--nx-critical-soft);
+}
+
+.nx-chip[data-tone='info'] {
+  color: var(--nx-info);
+  border-color: var(--nx-info-line);
+  background: var(--nx-info-soft);
+}
+
+/* ---- Buttons (board 05) ----------------------------------------------- */
+
+.nx-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: var(--nx-radius-sm);
+  border: 1px solid transparent;
+  font-size: var(--nx-size-metadata);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--nx-text-1);
+  transition: background-color 160ms ease, border-color 160ms ease,
+    color 160ms ease, transform 160ms ease;
+}
+
+.nx-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.nx-btn:disabled {
+  opacity: 0.38;
+}
+
+/* Primary: the purple action. One per view at most. */
+.nx-btn--primary {
+  background: var(--nx-primary);
+  color: #16101f;
+  font-weight: 600;
+  box-shadow: 0 10px 26px -14px var(--nx-primary-glow);
+}
+
+.nx-btn--primary:hover:not(:disabled) {
+  background: #c5a2ff;
+}
+
+.nx-btn--secondary {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--nx-border);
+}
+
+.nx-btn--secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.nx-btn--tertiary {
+  background: transparent;
+  border-color: var(--nx-hairline);
+  color: var(--nx-text-2);
+}
+
+.nx-btn--tertiary:hover:not(:disabled) {
+  border-color: var(--nx-border);
+}
+
+.nx-btn--ghost {
+  background: transparent;
+  color: var(--nx-text-3);
+}
+
+.nx-btn--ghost:hover:not(:disabled) {
+  color: var(--nx-text-1);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Cautionary and dangerous actions are never plain buttons. */
+.nx-btn--caution {
+  background: var(--nx-warning-soft);
+  border-color: var(--nx-warning-line);
+  color: var(--nx-warning);
+  font-weight: 600;
+}
+
+.nx-btn--caution:hover:not(:disabled) {
+  background: rgba(255, 209, 102, 0.22);
+}
+
+.nx-btn--danger {
+  background: var(--nx-critical-soft);
+  border-color: var(--nx-critical-line);
+  color: var(--nx-critical);
+  font-weight: 600;
+}
+
+.nx-btn--danger:hover:not(:disabled) {
+  background: rgba(255, 102, 107, 0.24);
+}
+
+.nx-btn--nature {
+  background: var(--nx-nature-soft);
+  border-color: var(--nx-nature-line);
+  color: var(--nx-nature);
+  font-weight: 600;
+}
+
+.nx-btn--nature:hover:not(:disabled) {
+  background: rgba(169, 217, 163, 0.22);
+}
+
+/* ---- Meter: a measured value on a track ------------------------------- */
+
+.nx-meter {
+  position: relative;
+  height: 4px;
+  border-radius: var(--nx-radius-pill);
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.nx-meter__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--nx-primary), #cbb0ff);
+}
+
+.nx-meter__fill[data-tone='nature'] {
+  background: linear-gradient(90deg, var(--nx-nature), #c9ecc4);
+}
+
+/* ---- Alert: a condition the operator must not miss --------------------- */
+
+.nx-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 16px;
+  border-radius: var(--nx-radius-sm);
+  border: 1px solid var(--nx-hairline);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: var(--nx-size-metadata);
+  line-height: 1.6;
+  color: var(--nx-text-2);
+}
+
+.nx-alert[data-tone='warning'] {
+  border-color: var(--nx-warning-line);
+  background: var(--nx-warning-soft);
+  color: #ffe6ad;
+}
+
+.nx-alert[data-tone='critical'] {
+  border-color: var(--nx-critical-line);
+  background: var(--nx-critical-soft);
+  color: #ffc0c2;
+}
+
+.nx-alert[data-tone='nature'] {
+  border-color: var(--nx-nature-line);
+  background: var(--nx-nature-soft);
+  color: #d8f0d4;
+}
+
+.nx-alert__mark {
+  flex: none;
+  width: 3px;
+  align-self: stretch;
+  border-radius: var(--nx-radius-pill);
+  background: currentColor;
+  opacity: 0.8;
+}

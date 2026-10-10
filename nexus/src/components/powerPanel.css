@@ -1,0 +1,149 @@
+.nx-power {
+  border-radius: var(--nx-radius-lg);
+}
+
+.nx-power .nx-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.nx-power__online {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.nx-power__online-count {
+  font-size: clamp(24px, 1.9vw, 34px);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--nx-critical);
+}
+
+.nx-power__online-word {
+  font-size: var(--nx-size-caption);
+  letter-spacing: 0.2em;
+  color: var(--nx-text-3);
+}
+
+/* Green only when every expected servo actually answered. Any shortfall is a
+ * fault, and reads as one. */
+.nx-power__online[data-all-online] .nx-power__online-count {
+  color: var(--nx-nature);
+}
+
+.nx-power__online[data-all-online] .nx-power__online-word {
+  color: var(--nx-nature);
+}
+
+/* Unmeasured is its own state: neutral grey, never the green of health or the
+ * red of a fault. */
+.nx-power__unsampled {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.nx-power__unsampled-title {
+  font-size: var(--nx-size-telemetry);
+  letter-spacing: 0.12em;
+  color: var(--nx-text-3);
+}
+
+.nx-power__unsampled-note {
+  font-size: var(--nx-size-metadata);
+  line-height: 1.6;
+  color: var(--nx-text-4);
+}
+
+.nx-power__strip {
+  padding: 14px 16px 15px;
+}
+
+.nx-power__strip-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.nx-power__range {
+  font-size: var(--nx-size-telemetry);
+  color: var(--nx-text-1);
+}
+
+.nx-power__range[data-missing] {
+  color: var(--nx-text-4);
+}
+
+.nx-power__track {
+  position: relative;
+  height: 4px;
+  margin: 15px 0 8px;
+  border-radius: var(--nx-radius-pill);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.nx-power__span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: var(--nx-radius-pill);
+  background: var(--nx-nature-soft);
+  border: 1px solid var(--nx-nature-line);
+}
+
+.nx-power__tick {
+  position: absolute;
+  top: 50%;
+  width: 2px;
+  height: 13px;
+  margin-left: -1px;
+  border-radius: var(--nx-radius-pill);
+  transform: translateY(-50%);
+  background: var(--nx-nature);
+}
+
+.nx-power__scale {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: var(--nx-size-caption);
+  letter-spacing: 0.08em;
+  color: var(--nx-text-4);
+}
+
+.nx-power__scale-note {
+  letter-spacing: 0.04em;
+}
+
+.nx-power__history {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nx-power__history-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.nx-power__history-legend {
+  font-size: var(--nx-size-caption);
+  letter-spacing: 0.1em;
+  color: var(--nx-text-4);
+}
+
+.nx-power__rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.nx-power__empty {
+  font-size: var(--nx-size-metadata);
+  color: var(--nx-text-3);
+}

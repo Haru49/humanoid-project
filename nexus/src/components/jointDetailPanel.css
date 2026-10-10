@@ -1,0 +1,116 @@
+.nx-detail {
+  border-radius: var(--nx-radius-lg);
+}
+
+.nx-detail .nx-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.nx-detail__identity {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.nx-detail__name {
+  font-size: var(--nx-size-telemetry);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--nx-text-1);
+}
+
+.nx-detail__id {
+  font-size: var(--nx-size-caption);
+  letter-spacing: 0.12em;
+  color: var(--nx-primary);
+  padding: 3px 9px;
+  border-radius: var(--nx-radius-pill);
+  background: var(--nx-primary-soft);
+}
+
+.nx-detail__moves {
+  margin: -8px 0 0;
+  font-size: var(--nx-size-metadata);
+  line-height: 1.6;
+  color: var(--nx-text-3);
+}
+
+/* ---- Raw position, the hero number of this panel --------------------- */
+
+.nx-detail__raw {
+  padding: 14px 16px 15px;
+}
+
+.nx-detail__raw-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.nx-detail__raw-value {
+  font-size: clamp(28px, 2.3vw, 42px);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--nx-primary);
+}
+
+/* No reading means no emphasis colour and no marker on the track. */
+.nx-detail__raw[data-missing] .nx-detail__raw-value {
+  color: var(--nx-text-4);
+}
+
+.nx-detail__raw .nx-rail {
+  margin-top: 14px;
+}
+
+.nx-detail__history {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 16px;
+  padding-top: 13px;
+  border-top: 1px solid var(--nx-hairline);
+}
+
+.nx-detail__thermo {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 14px 16px 15px;
+}
+
+/* ---- Rows and notes ------------------------------------------------- */
+
+.nx-detail__rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.nx-detail__notes {
+  padding-top: 14px;
+  border-top: 1px solid var(--nx-hairline);
+}
+
+.nx-detail__note {
+  margin: 6px 0 0;
+  font-size: var(--nx-size-metadata);
+  line-height: 1.6;
+  color: var(--nx-text-3);
+}
+
+/* A recorded hardware caution from the motion contract. Amber: act carefully,
+ * this is a real constraint on the machine. */
+.nx-detail__note--caution {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--nx-warning-line);
+  border-radius: var(--nx-radius-sm);
+  background: var(--nx-warning-soft);
+  color: #ffe6ad;
+}

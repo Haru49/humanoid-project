@@ -1,0 +1,130 @@
+/* Reset and global typography for NEXUS. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--nx-bg);
+  color: var(--nx-text-1);
+  font-family: var(--nx-font-ui);
+  font-size: var(--nx-size-body);
+  font-weight: 400;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  font-size: var(--nx-size-heading);
+  line-height: var(--nx-line-heading);
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+:focus-visible {
+  outline: 2px solid var(--nx-primary);
+  outline-offset: 2px;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+/* ---- Shared text utilities ------------------------------------------- */
+
+/* Small all-caps label. The quietest voice in the interface. */
+.nx-label {
+  font-size: var(--nx-size-caption);
+  font-weight: 500;
+  letter-spacing: var(--nx-tracking-label);
+  text-transform: uppercase;
+  color: var(--nx-text-3);
+}
+
+/* Telemetry, IDs, times and logs are always monospace. */
+.nx-mono {
+  font-family: var(--nx-font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+/* The one representation of a value nothing measured. */
+.nx-unavailable {
+  color: var(--nx-text-4);
+}
+
+/* Custom scrollbars, so a scrolling panel does not punch a bright hole in
+ * the glass. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: var(--nx-radius-pill);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

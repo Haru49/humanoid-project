@@ -1,0 +1,126 @@
+/*
+ * First-motion test for the left planar pair.
+ *
+ * This is the only screen in NEXUS that commands movement, so the emergency
+ * stop and the arming state are the two loudest things on it.
+ */
+
+.nx-motion-nudge {
+  display: grid;
+  place-items: start center;
+  /* `.nx-main` owns the scrollbar. */
+}
+
+.nx-motion-nudge__card {
+  width: min(760px, 100%);
+  padding: clamp(20px, 1.8vw, 32px) clamp(20px, 2vw, 34px);
+  border-radius: var(--nx-radius-lg);
+}
+
+.nx-motion-nudge h1 {
+  margin: 8px 0 18px;
+  font-size: var(--nx-size-heading);
+  line-height: var(--nx-line-heading);
+  font-weight: 300;
+  color: var(--nx-text-1);
+}
+
+/* Contains the emergency stop procedure. Always red, always first. */
+.nx-motion-nudge__warning {
+  display: block;
+  padding: 14px 16px;
+  border: 1px solid var(--nx-critical-line);
+  border-left: 3px solid var(--nx-critical);
+  border-radius: var(--nx-radius-sm);
+  background: var(--nx-critical-soft);
+  font-size: var(--nx-size-telemetry);
+  font-weight: 500;
+  line-height: 1.65;
+  color: #ffc9cb;
+}
+
+.nx-motion-nudge p {
+  font-size: var(--nx-size-metadata);
+  line-height: 1.65;
+  color: var(--nx-text-2);
+}
+
+.nx-motion-nudge__warning + p {
+  margin-top: 14px;
+  color: var(--nx-text-3);
+}
+
+.nx-motion-nudge .nx-mono {
+  display: block;
+  margin-top: 12px;
+  font-size: var(--nx-size-metadata);
+  letter-spacing: 0.04em;
+  color: var(--nx-text-3);
+}
+
+/* A precondition that is not met yet: caution, not danger. */
+.nx-motion-nudge__blocked {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--nx-warning-line);
+  border-left: 3px solid var(--nx-warning);
+  border-radius: var(--nx-radius-sm);
+  background: var(--nx-warning-soft);
+  color: #ffe6ad;
+}
+
+.nx-motion-nudge__controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--nx-hairline);
+}
+
+.nx-motion-nudge button {
+  margin-top: 16px;
+  padding: 10px 16px;
+  border-radius: var(--nx-radius-sm);
+  border: 1px solid var(--nx-border);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--nx-text-1);
+  font-size: var(--nx-size-metadata);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.nx-motion-nudge__controls button {
+  margin-top: 0;
+}
+
+.nx-motion-nudge button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.nx-motion-nudge button:disabled {
+  opacity: 0.32;
+}
+
+/* Arming (1st), then the two commands that actually move the linkage (2nd and
+ * 3rd). Movement is amber: proceed, but deliberately. */
+.nx-motion-nudge__controls button:nth-child(1) {
+  border-color: var(--nx-primary-line);
+  background: var(--nx-primary-soft);
+  color: var(--nx-primary);
+  font-weight: 600;
+}
+
+.nx-motion-nudge__controls button:nth-child(2),
+.nx-motion-nudge__controls button:nth-child(3) {
+  border-color: var(--nx-warning-line);
+  background: var(--nx-warning-soft);
+  color: var(--nx-warning);
+  font-weight: 600;
+}
+
+.nx-motion-nudge__controls button:nth-child(2):hover:not(:disabled),
+.nx-motion-nudge__controls button:nth-child(3):hover:not(:disabled) {
+  background: rgba(255, 209, 102, 0.22);
+}
