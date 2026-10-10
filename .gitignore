@@ -1,4 +1,6 @@
 .DS_Store
+data/telemetry/
+data/server-logs/
 .pio/
 
 # PlatformIO-generated VS Code files
@@ -8,3 +10,12 @@
 .vscode/ipch/
 firmware/**/.pio/
 firmware/**/.vscode/
+
+# Wi-Fi credentials (never commit real values; use secrets.h.example as a template)
+**/secrets.h
+
+# AI assistant instructions and local prompt collections
+/AGENTS.md
+/CLAUDE.md
+/.claude/
+/prompts/
